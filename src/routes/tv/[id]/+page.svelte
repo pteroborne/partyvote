@@ -46,37 +46,29 @@
 		try {
 			let origin = '';
 
-			// 1. If in browser and URL is not localhost/172, use browser window origin directly!
+			// 1. In client browser: window.location.origin is 100% authoritative for the network!
 			if (typeof window !== 'undefined' && window.location?.origin) {
-				const browserOrigin = window.location.origin;
-				if (
-					!browserOrigin.includes('localhost') &&
-					!browserOrigin.includes('127.0.0.1') &&
-					!browserOrigin.includes('172.')
-				) {
-					origin = browserOrigin;
-				}
+				origin = window.location.origin;
+				console.log('[PartyVote QR Debug] Client browser window.location.origin:', origin);
 			}
 
-			// 2. Query server network-ip API if origin is not resolved or if configured via PUBLIC_ORIGIN
+			// 2. Fallback to API if origin is empty or on server SSR
 			if (!origin) {
 				try {
 					const ipRes = await fetch('/api/network-ip');
 					const ipData = await ipRes.json();
-					if (ipData.origin && !ipData.origin.includes('localhost') && !ipData.origin.includes('172.')) {
+					console.log('[PartyVote QR Debug] /api/network-ip response:', ipData);
+					if (ipData?.origin) {
 						origin = ipData.origin;
 					}
 				} catch (e) {
-					// Fallback
+					console.error('[PartyVote QR Debug] Failed to fetch /api/network-ip:', e);
 				}
 			}
 
-			// 3. Fallback to current browser window location
-			if (!origin && typeof window !== 'undefined') {
-				origin = window.location.origin;
-			}
-
 			guestVoteUrl = `${origin}/vote/${pollId}`;
+			console.log('[PartyVote QR Debug] Calculated guestVoteUrl:', guestVoteUrl);
+
 			qrDataUrl = await QRCode.toDataURL(guestVoteUrl, {
 				width: 320,
 				margin: 1,
@@ -86,7 +78,7 @@
 				}
 			});
 		} catch (e) {
-			console.error('QR code generation failed:', e);
+			console.error('[PartyVote QR Debug] QR code generation error:', e);
 		}
 	}
 
