@@ -44,24 +44,35 @@
 
 	async function generateQrCode() {
 		try {
-			let origin = window.location.origin;
+			let origin = '';
 
-			try {
-				const ipRes = await fetch('/api/network-ip');
-				const ipData = await ipRes.json();
-
-				if (ipData.origin) {
-					// If server returns explicit PUBLIC_ORIGIN or non-docker host IP, use it
-					if (!ipData.origin.includes('localhost') && !ipData.origin.includes('127.0.0.1')) {
-						origin = ipData.origin;
-					}
+			// 1. If in browser and URL is not localhost/172, use browser window origin directly!
+			if (typeof window !== 'undefined' && window.location?.origin) {
+				const browserOrigin = window.location.origin;
+				if (
+					!browserOrigin.includes('localhost') &&
+					!browserOrigin.includes('127.0.0.1') &&
+					!browserOrigin.includes('172.')
+				) {
+					origin = browserOrigin;
 				}
-			} catch (e) {
-				// Fallback to window.location.origin
 			}
 
-			// Final fallback: if browser is on 192.168.x.x, preserve it
-			if (window.location.origin && !window.location.origin.includes('localhost') && !window.location.origin.includes('127.0.0.1')) {
+			// 2. Query server network-ip API if origin is not resolved or if configured via PUBLIC_ORIGIN
+			if (!origin) {
+				try {
+					const ipRes = await fetch('/api/network-ip');
+					const ipData = await ipRes.json();
+					if (ipData.origin && !ipData.origin.includes('localhost') && !ipData.origin.includes('172.')) {
+						origin = ipData.origin;
+					}
+				} catch (e) {
+					// Fallback
+				}
+			}
+
+			// 3. Fallback to current browser window location
+			if (!origin && typeof window !== 'undefined') {
 				origin = window.location.origin;
 			}
 

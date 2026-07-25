@@ -1,18 +1,26 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { env as dynamicPrivateEnv } from '$env/dynamic/private';
+import { env as dynamicPublicEnv } from '$env/dynamic/public';
 import os from 'os';
 
 export const GET: RequestHandler = async ({ url, request }) => {
-	// 1. Explicit environment variable override
-	if (process.env.PUBLIC_ORIGIN) {
-		return json({ origin: process.env.PUBLIC_ORIGIN });
+	// 1. Check runtime environment variables (Dynamic SvelteKit Env)
+	const publicOrigin = dynamicPublicEnv.PUBLIC_ORIGIN || dynamicPrivateEnv.PUBLIC_ORIGIN || process.env.PUBLIC_ORIGIN;
+	if (publicOrigin && publicOrigin.trim()) {
+		return json({ origin: publicOrigin.trim() });
 	}
 
-	// 2. Request host header (contains real LAN IP / Domain used by browser to open the page)
+	// 2. Check Host / X-Forwarded-Host header
 	const hostHeader = request.headers.get('x-forwarded-host') || request.headers.get('host');
 	const protocol = request.headers.get('x-forwarded-proto') || url.protocol || 'http:';
 
-	if (hostHeader && !hostHeader.includes('localhost') && !hostHeader.includes('127.0.0.1')) {
+	if (
+		hostHeader &&
+		!hostHeader.includes('localhost') &&
+		!hostHeader.includes('127.0.0.1') &&
+		!hostHeader.startsWith('172.')
+	) {
 		const fullOrigin = hostHeader.startsWith('http') ? hostHeader : `${protocol.replace(':', '')}://${hostHeader}`;
 		return json({
 			ip: hostHeader.split(':')[0],
@@ -21,7 +29,7 @@ export const GET: RequestHandler = async ({ url, request }) => {
 		});
 	}
 
-	// 3. Fallback to non-docker OS network interfaces
+	// 3. Fallback OS network interfaces
 	const interfaces = os.networkInterfaces();
 	let localIp = 'localhost';
 
@@ -30,7 +38,6 @@ export const GET: RequestHandler = async ({ url, request }) => {
 		if (!iface) continue;
 
 		for (const alias of iface) {
-			// Filter out internal loopback and common Docker bridge IPs (172.17.x - 172.31.x)
 			if (
 				alias.family === 'IPv4' &&
 				!alias.internal &&
