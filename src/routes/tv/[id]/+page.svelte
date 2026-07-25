@@ -45,14 +45,18 @@
 	async function generateQrCode() {
 		try {
 			let origin = window.location.origin;
-			try {
-				const ipRes = await fetch('/api/network-ip');
-				const ipData = await ipRes.json();
-				if (ipData.origin && !ipData.origin.includes('localhost')) {
-					origin = ipData.origin;
+
+			// Only query server network-ip if TV browser is currently on localhost/127.0.0.1
+			if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+				try {
+					const ipRes = await fetch('/api/network-ip');
+					const ipData = await ipRes.json();
+					if (ipData.origin && !ipData.origin.includes('localhost') && !ipData.origin.includes('127.0.0.1')) {
+						origin = ipData.origin;
+					}
+				} catch (e) {
+					// Fallback to window.location.origin
 				}
-			} catch (e) {
-				// Fallback
 			}
 
 			guestVoteUrl = `${origin}/vote/${pollId}`;
