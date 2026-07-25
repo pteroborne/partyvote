@@ -46,17 +46,23 @@
 		try {
 			let origin = window.location.origin;
 
-			// Only query server network-ip if TV browser is currently on localhost/127.0.0.1
-			if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-				try {
-					const ipRes = await fetch('/api/network-ip');
-					const ipData = await ipRes.json();
-					if (ipData.origin && !ipData.origin.includes('localhost') && !ipData.origin.includes('127.0.0.1')) {
+			try {
+				const ipRes = await fetch('/api/network-ip');
+				const ipData = await ipRes.json();
+
+				if (ipData.origin) {
+					// If server returns explicit PUBLIC_ORIGIN or non-docker host IP, use it
+					if (!ipData.origin.includes('localhost') && !ipData.origin.includes('127.0.0.1')) {
 						origin = ipData.origin;
 					}
-				} catch (e) {
-					// Fallback to window.location.origin
 				}
+			} catch (e) {
+				// Fallback to window.location.origin
+			}
+
+			// Final fallback: if browser is on 192.168.x.x, preserve it
+			if (window.location.origin && !window.location.origin.includes('localhost') && !window.location.origin.includes('127.0.0.1')) {
+				origin = window.location.origin;
 			}
 
 			guestVoteUrl = `${origin}/vote/${pollId}`;
