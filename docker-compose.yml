@@ -25,7 +25,7 @@ services:
       POSTGRES_PASSWORD: partysecret
       POSTGRES_DB: partyvote
     ports:
-      - "5432:5432"
+      - "5433:5432" # Changed host port to 5433 to avoid conflict with local postgres on server
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
