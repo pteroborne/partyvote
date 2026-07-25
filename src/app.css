@@ -1,0 +1,212 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Space+Grotesk:wght@600;700;800&display=swap');
+
+:root {
+	--bg-space: #060608;
+	--bg-panel: #111116;
+	--bg-panel-elevated: #1a1a24;
+	--bg-input: #0b0b0f;
+
+	--border-stark: 2px solid #ffffff;
+	--border-subtle: 1px solid #272732;
+	--border-red: 2px solid #ff1e42;
+	--border-cyan: 2px solid #00f0ff;
+
+	--shadow-brutal-white: 6px 6px 0px #ffffff;
+	--shadow-brutal-black: 6px 6px 0px #000000;
+	--shadow-brutal-red: 6px 6px 0px #ff1e42;
+	--shadow-brutal-cyan: 6px 6px 0px #00f0ff;
+
+	--accent-red: #ff1e42;
+	--accent-cyan: #00f0ff;
+	--accent-white: #ffffff;
+
+	--text-primary: #ffffff;
+	--text-secondary: #9e9ea8;
+	--text-dim: #5a5a66;
+
+	--font-heading: 'Space Grotesk', sans-serif;
+	--font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+	border-radius: 0 !important; /* Boxy sharp right angles */
+	-webkit-tap-highlight-color: transparent;
+}
+
+body {
+	background-color: var(--bg-space);
+	background-image: 
+		linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+	background-size: 32px 32px;
+	color: var(--text-primary);
+	font-family: var(--font-heading);
+	min-height: 100vh;
+	padding: 24px;
+	line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: var(--font-heading);
+	font-weight: 800;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--text-primary);
+}
+
+/* Subtle, small page titles */
+.page-title-subtle {
+	font-family: var(--font-mono);
+	font-size: 0.9rem;
+	font-weight: 700;
+	color: var(--text-secondary);
+	letter-spacing: 0.15em;
+	text-transform: uppercase;
+}
+
+.panel-tag {
+	font-family: var(--font-mono);
+	font-size: 0.75rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.15em;
+	color: var(--text-secondary);
+	margin-bottom: 8px;
+	display: block;
+}
+
+a {
+	color: inherit;
+	text-decoration: none;
+}
+
+/* Space Imperial Panel with Offset Shadow */
+.empire-panel {
+	background: var(--bg-panel);
+	border: var(--border-stark);
+	box-shadow: var(--shadow-brutal-white);
+	padding: 36px;
+	margin-bottom: 32px;
+	position: relative;
+}
+
+.empire-panel-interactive {
+	cursor: pointer;
+	transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.empire-panel-interactive:hover {
+	transform: translate(-3px, -3px);
+	box-shadow: 9px 9px 0px #ffffff;
+}
+
+/* Minimal Badges */
+.badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 4px 12px;
+	font-family: var(--font-mono);
+	font-size: 0.75rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	border: 1px solid #ffffff;
+}
+
+.badge-active {
+	background: rgba(0, 240, 255, 0.12);
+	color: var(--accent-cyan);
+	border-color: var(--accent-cyan);
+}
+
+.badge-closed {
+	background: rgba(255, 30, 66, 0.15);
+	color: var(--accent-red);
+	border-color: var(--accent-red);
+}
+
+.badge-strategy {
+	background: #1e1e28;
+	color: var(--text-secondary);
+	border-color: var(--border-subtle);
+}
+
+/* Buttons with NeoBrutalist Drop Shadow */
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 14px 28px;
+	font-family: var(--font-mono);
+	font-weight: 700;
+	font-size: 0.85rem;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	cursor: pointer;
+	border: 2px solid #ffffff;
+	background: var(--bg-panel-elevated);
+	color: var(--text-primary);
+	box-shadow: 4px 4px 0px #ffffff;
+	transition: transform 0.1s ease, box-shadow 0.1s ease;
+	outline: none;
+}
+
+.btn:hover {
+	transform: translate(-2px, -2px);
+	box-shadow: 6px 6px 0px #ffffff;
+}
+
+.btn:active {
+	transform: translate(2px, 2px);
+	box-shadow: 2px 2px 0px #ffffff;
+}
+
+.btn-primary {
+	background: #ffffff;
+	color: #000000;
+	border-color: #ffffff;
+	box-shadow: 4px 4px 0px var(--accent-cyan);
+}
+
+.btn-primary:hover {
+	background: var(--accent-cyan);
+	color: #000000;
+	box-shadow: 6px 6px 0px #ffffff;
+}
+
+.btn-danger {
+	background: var(--accent-red);
+	color: #ffffff;
+	border-color: var(--accent-red);
+	box-shadow: 4px 4px 0px #ffffff;
+}
+
+.btn-danger:hover {
+	transform: translate(-2px, -2px);
+	box-shadow: 6px 6px 0px #ffffff;
+}
+
+/* Technical Input Fields */
+.input-field {
+	width: 100%;
+	padding: 16px 20px;
+	background: var(--bg-input);
+	border: 1px solid var(--text-secondary);
+	color: var(--text-primary);
+	font-family: var(--font-mono);
+	font-size: 1rem;
+	transition: border-color 0.15s;
+}
+
+.input-field:focus {
+	outline: none;
+	border: 2px solid #ffffff;
+	box-shadow: 4px 4px 0px var(--accent-cyan);
+}
+
+.space-v {
+	height: 24px;
+}
