@@ -9,21 +9,24 @@
 	let eventSource: EventSource | null = null;
 	let activeAdminTab = $state<'overview' | 'settings' | 'categories'>('overview');
 
-	// Create Poll Wizard State
-	let showCreateModal = $state(false);
-	let newPollTitle = $state('');
-	let newPollDesc = $state('');
-	let newWinnerAllocation = $state('no-duplicate-winners');
-	let newShowLiveTotals = $state(false);
+	// Create/Edit Poll Wizard State
+	let showWizardModal = $state(false);
+	let isEditingPoll = $state(false);
+	let editingPollId = $state('');
+	let wizardTitle = $state('');
+	let wizardDesc = $state('');
+	let wizardWinnerAllocation = $state('no-duplicate-winners');
+	let wizardShowLiveTotals = $state(false);
 	let categories: any[] = $state([
 		{
+			id: '',
 			title: 'Best Costume',
 			description: 'Rank your top 3 costumes',
 			votingStrategy: 'ranked-choice',
 			options: [
-				{ title: 'Cyberpunk Neo', description: 'Glowing neon coat', candidateKey: 'alex' },
-				{ title: 'Disco Banana', description: 'Sequined jumpsuit', candidateKey: 'jordan' },
-				{ title: 'Retro Mario', description: 'Classic overalls with giant mustache', candidateKey: 'taylor' }
+				{ id: '', title: 'Cyberpunk Neo', description: 'Glowing neon coat', candidateKey: 'alex' },
+				{ id: '', title: 'Disco Banana', description: 'Sequined jumpsuit', candidateKey: 'jordan' },
+				{ id: '', title: 'Retro Mario', description: 'Classic overalls with giant mustache', candidateKey: 'taylor' }
 			]
 		}
 	]);
@@ -71,6 +74,112 @@
 		eventSource.addEventListener('poll_updated', () => loadPollDetails(pollId));
 		eventSource.addEventListener('status_changed', () => loadPollDetails(pollId));
 		eventSource.addEventListener('presentation_step_changed', () => loadPollDetails(pollId));
+	}
+
+	function openCreateWizard() {
+		isEditingPoll = false;
+		editingPollId = '';
+		wizardTitle = '';
+		wizardDesc = '';
+		wizardWinnerAllocation = 'no-duplicate-winners';
+		wizardShowLiveTotals = false;
+		categories = [
+			{
+				id: '',
+				title: 'Best Costume',
+				description: 'Rank your top 3 costumes',
+				votingStrategy: 'ranked-choice',
+				options: [
+					{ id: '', title: 'Candidate 1', description: '', candidateKey: 'candidate1' },
+					{ id: '', title: 'Candidate 2', description: '', candidateKey: 'candidate2' }
+				]
+			}
+		];
+		showWizardModal = true;
+	}
+
+	function openEditWizard() {
+		if (!selectedPoll) return;
+		isEditingPoll = true;
+		editingPollId = selectedPoll.poll.id;
+		wizardTitle = selectedPoll.poll.title;
+		wizardDesc = selectedPoll.poll.description || '';
+		wizardWinnerAllocation = selectedPoll.poll.winnerAllocationStrategy;
+		wizardShowLiveTotals = selectedPoll.poll.showLiveTotals;
+
+		// Deep clone categories & options for editing
+		categories = selectedPoll.categories.map((c: any) => ({
+			id: c.category.id,
+			title: c.category.title,
+			description: c.category.description || '',
+			votingStrategy: c.category.votingStrategy,
+			options: c.options.map((o: any) => ({
+				id: o.id,
+				title: o.title,
+				description: o.description || '',
+				candidateKey: o.candidateKey || ''
+			}))
+		}));
+		showWizardModal = true;
+	}
+
+	async function saveWizardPoll() {
+		if (!wizardTitle.trim()) {
+			errorMsg = 'Please enter a poll title.';
+			return;
+		}
+
+		try {
+			if (isEditingPoll) {
+				// UPDATE EXISTING POLL
+				const res = await fetch(`/api/polls/${editingPollId}`, {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						title: wizardTitle.trim(),
+						description: wizardDesc.trim(),
+						winnerAllocationStrategy: wizardWinnerAllocation,
+						showLiveTotals: wizardShowLiveTotals,
+						categories
+					})
+				});
+				const data = await res.json();
+				if (res.ok) {
+					showWizardModal = false;
+					await loadPolls();
+					await loadPollDetails(editingPollId);
+					successMsg = 'Poll updated successfully.';
+					setTimeout(() => (successMsg = ''), 3000);
+				} else {
+					errorMsg = data.error || 'Failed to update poll';
+				}
+			} else {
+				// CREATE NEW POLL
+				const res = await fetch('/api/polls', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						title: wizardTitle.trim(),
+						description: wizardDesc.trim(),
+						winnerAllocationStrategy: wizardWinnerAllocation,
+						showLiveTotals: wizardShowLiveTotals,
+						categories
+					})
+				});
+				const data = await res.json();
+				if (res.ok) {
+					showWizardModal = false;
+					await loadPolls();
+					await loadPollDetails(data.poll.id);
+					successMsg = 'Poll created successfully.';
+					setTimeout(() => (successMsg = ''), 3000);
+				} else {
+					errorMsg = data.error || 'Failed to create poll';
+				}
+			}
+		} catch (e: any) {
+			errorMsg = e.message;
+		}
 	}
 
 	async function toggleStatus(newStatus: string) {
@@ -140,10 +249,11 @@
 
 	function addCategory() {
 		categories.push({
+			id: '',
 			title: `Category ${categories.length + 1}`,
 			description: '',
 			votingStrategy: 'ranked-choice',
-			options: [{ title: 'Candidate 1', description: '', candidateKey: '' }]
+			options: [{ id: '', title: 'Candidate 1', description: '', candidateKey: '' }]
 		});
 	}
 
@@ -153,6 +263,7 @@
 
 	function addOption(catIndex: number) {
 		categories[catIndex].options.push({
+			id: '',
 			title: `Candidate ${categories[catIndex].options.length + 1}`,
 			description: '',
 			candidateKey: ''
@@ -163,38 +274,35 @@
 		categories[catIndex].options.splice(optIndex, 1);
 	}
 
-	async function handleCreatePoll() {
-		if (!newPollTitle.trim()) {
-			errorMsg = 'Please enter a poll title.';
-			return;
-		}
-		try {
-			const res = await fetch('/api/polls', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					title: newPollTitle,
-					description: newPollDesc,
-					winnerAllocationStrategy: newWinnerAllocation,
-					showLiveTotals: newShowLiveTotals,
-					categories
-				})
-			});
-			const data = await res.json();
-			if (res.ok) {
-				showCreateModal = false;
-				newPollTitle = '';
-				newPollDesc = '';
-				await loadPolls();
-				await loadPollDetails(data.poll.id);
-				successMsg = 'Poll created successfully.';
-				setTimeout(() => (successMsg = ''), 3000);
-			} else {
-				errorMsg = data.error || 'Failed to create poll';
+	// Copy Candidates Utility Functions
+	function copyCandidatesFromCategory(targetCatIndex: number, sourceCatIndex: number) {
+		if (sourceCatIndex < 0 || sourceCatIndex >= categories.length) return;
+		const sourceOpts = categories[sourceCatIndex].options;
+		// Clone options without preserving IDs so they get created as new options for this category
+		categories[targetCatIndex].options = sourceOpts.map((o: any) => ({
+			id: '',
+			title: o.title,
+			description: o.description || '',
+			candidateKey: o.candidateKey || ''
+		}));
+		successMsg = `Copied ${sourceOpts.length} candidates from "${categories[sourceCatIndex].title}".`;
+		setTimeout(() => (successMsg = ''), 3000);
+	}
+
+	function copyCandidatesToAllCategories(sourceCatIndex: number) {
+		const sourceOpts = categories[sourceCatIndex].options;
+		for (let i = 0; i < categories.length; i++) {
+			if (i !== sourceCatIndex) {
+				categories[i].options = sourceOpts.map((o: any) => ({
+					id: '',
+					title: o.title,
+					description: o.description || '',
+					candidateKey: o.candidateKey || ''
+				}));
 			}
-		} catch (e: any) {
-			errorMsg = e.message;
 		}
+		successMsg = `Copied candidates to all ${categories.length - 1} other categories.`;
+		setTimeout(() => (successMsg = ''), 3000);
 	}
 </script>
 
@@ -207,9 +315,9 @@
 	<header class="empire-panel admin-header">
 		<div>
 			<a href="/" class="back-link">← HOME</a>
-			<span class="page-title-subtle">[ HOST CONTROL ]</span>
+			<span class="page-title-subtle">[ HOST MISSION CONTROL ]</span>
 		</div>
-		<button class="btn btn-primary" onclick={() => (showCreateModal = true)}>
+		<button class="btn btn-primary" onclick={openCreateWizard}>
 			+ NEW POLL
 		</button>
 	</header>
@@ -242,7 +350,7 @@
 		{@const totalCats = selectedPoll.categories.length}
 		{@const currentStep = poll.currentRevealStep || 0}
 
-		<!-- Admin Section Tabs (To reduce visual overload!) -->
+		<!-- Admin Section Tabs -->
 		<div class="admin-tabs-nav">
 			<button
 				class="admin-tab-btn {activeAdminTab === 'overview' ? 'admin-tab-active' : ''}"
@@ -271,10 +379,16 @@
 					<div>
 						<div class="panel-tag">[ POLL STATUS ]</div>
 						<h2>{poll.title}</h2>
+						{#if poll.description}<p class="sub-text">{poll.description}</p>{/if}
 					</div>
-					<span class="badge {isClosed ? 'badge-closed' : 'badge-active'}">
-						{poll.status.toUpperCase()}
-					</span>
+					<div class="status-right">
+						<span class="badge {isClosed ? 'badge-closed' : 'badge-active'}">
+							{poll.status.toUpperCase()}
+						</span>
+						<button class="btn btn-cyan btn-sm" onclick={openEditWizard}>
+							EDIT POLL
+						</button>
+					</div>
 				</div>
 
 				<div class="space-v"></div>
@@ -374,7 +488,12 @@
 		<!-- TAB 3: CATEGORIES OVERVIEW -->
 		{#if activeAdminTab === 'categories'}
 			<section class="empire-panel">
-				<div class="panel-tag">[ CONFIGURATIONS ]</div>
+				<div class="cat-tab-header">
+					<div class="panel-tag">[ CONFIGURATIONS ]</div>
+					<button class="btn btn-cyan btn-sm" onclick={openEditWizard}>
+						EDIT CATEGORIES & CANDIDATES
+					</button>
+				</div>
 				<div class="space-v"></div>
 
 				<div class="cat-list">
@@ -383,6 +502,11 @@
 							<div class="cat-item-top">
 								<strong>{catItem.category.title}</strong>
 								<span class="badge badge-strategy">{catItem.category.votingStrategy}</span>
+							</div>
+							<div class="cand-pills-row">
+								{#each catItem.options as opt}
+									<span class="cand-pill">{opt.title}</span>
+								{/each}
 							</div>
 						</div>
 					{/each}
@@ -398,13 +522,13 @@
 	{/if}
 </div>
 
-<!-- Modal Wizard -->
-{#if showCreateModal}
+<!-- Modal Wizard (Create & Edit Poll) -->
+{#if showWizardModal}
 	<div class="modal-overlay">
 		<div class="modal-card empire-panel">
 			<div class="modal-header">
-				<h2>CREATE NEW POLL</h2>
-				<button class="close-btn" onclick={() => (showCreateModal = false)}>✕</button>
+				<h2>{isEditingPoll ? 'EDIT POLL & CATEGORIES' : 'CREATE NEW POLL'}</h2>
+				<button class="close-btn" onclick={() => (showWizardModal = false)}>✕</button>
 			</div>
 
 			<div class="modal-body">
@@ -415,7 +539,7 @@
 						type="text"
 						class="input-field"
 						placeholder="e.g. Annual Party Awards 2026"
-						bind:value={newPollTitle}
+						bind:value={wizardTitle}
 					/>
 				</div>
 
@@ -426,13 +550,13 @@
 						type="text"
 						class="input-field"
 						placeholder="e.g. Scan QR code to submit votes"
-						bind:value={newPollDesc}
+						bind:value={wizardDesc}
 					/>
 				</div>
 
 				<div class="form-group">
 					<label for="pAlloc" class="panel-tag">Cross-Category Winner Allocation Rule</label>
-					<select id="pAlloc" class="input-field" bind:value={newWinnerAllocation}>
+					<select id="pAlloc" class="input-field" bind:value={wizardWinnerAllocation}>
 						<option value="no-duplicate-winners">No Duplicate Winners (1 Win Max Per Person)</option>
 						<option value="standard">Standard (Independent Categories)</option>
 					</select>
@@ -441,7 +565,7 @@
 				<div class="space-v"></div>
 
 				<div class="cat-builder-head">
-					<div class="panel-tag">CATEGORIES & CANDIDATES</div>
+					<div class="panel-tag">CATEGORIES & CANDIDATES ({categories.length})</div>
 					<button class="btn" onclick={addCategory}>+ ADD CATEGORY</button>
 				</div>
 
@@ -451,7 +575,7 @@
 							<input
 								type="text"
 								class="input-field flex-2"
-								placeholder="Category Title"
+								placeholder="Category Title (e.g. Best Costume)"
 								bind:value={cat.title}
 							/>
 							{#if categories.length > 1}
@@ -469,10 +593,40 @@
 							</select>
 						</div>
 
+						<!-- Copy Candidates Toolbar -->
+						{#if categories.length > 1}
+							<div class="copy-toolbar">
+								<span class="panel-tag text-xs">CANDIDATE UTILITIES:</span>
+								<div class="copy-toolbar-actions">
+									<select
+										class="input-field input-field-sm"
+										onchange={(e) => {
+											const val = (e.target as HTMLSelectElement).value;
+											if (val !== '') {
+												copyCandidatesFromCategory(cIdx, parseInt(val));
+												(e.target as HTMLSelectElement).value = '';
+											}
+										}}
+									>
+										<option value="">Copy Candidates From...</option>
+										{#each categories as sourceCat, sIdx}
+											{#if sIdx !== cIdx}
+												<option value={sIdx}>"{sourceCat.title}" ({sourceCat.options.length} candidates)</option>
+											{/if}
+										{/each}
+									</select>
+
+									<button class="btn btn-sm" onclick={() => copyCandidatesToAllCategories(cIdx)}>
+										COPY TO ALL CATEGORIES
+									</button>
+								</div>
+							</div>
+						{/if}
+
 						<div class="builder-opts-box">
 							<div class="opt-head">
-								<label for="cat-{cIdx}-options" class="panel-tag">Candidates</label>
-								<button class="btn" onclick={() => addOption(cIdx)}>+ CANDIDATE</button>
+								<label for="cat-{cIdx}-options" class="panel-tag">Candidates ({cat.options.length})</label>
+								<button class="btn btn-sm" onclick={() => addOption(cIdx)}>+ CANDIDATE</button>
 							</div>
 
 							{#each cat.options as opt, oIdx}
@@ -500,8 +654,10 @@
 			</div>
 
 			<div class="modal-footer">
-				<button class="btn" onclick={() => (showCreateModal = false)}>CANCEL</button>
-				<button class="btn btn-primary" onclick={handleCreatePoll}>CREATE POLL</button>
+				<button class="btn" onclick={() => (showWizardModal = false)}>CANCEL</button>
+				<button class="btn btn-primary" onclick={saveWizardPoll}>
+					{isEditingPoll ? 'SAVE CHANGES' : 'CREATE POLL'}
+				</button>
 			</div>
 		</div>
 	</div>
@@ -564,6 +720,12 @@
 		align-items: flex-start;
 	}
 
+	.status-right {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
 	.action-row {
 		display: flex;
 		gap: 14px;
@@ -590,6 +752,12 @@
 		color: var(--accent-white);
 	}
 
+	.cat-tab-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
 	.cat-list {
 		display: flex;
 		flex-direction: column;
@@ -600,12 +768,30 @@
 		padding: 16px;
 		background: var(--bg-panel-elevated);
 		border: var(--border-subtle);
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
 	}
 
 	.cat-item-top {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+	}
+
+	.cand-pills-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	.cand-pill {
+		padding: 4px 10px;
+		background: var(--bg-space);
+		border: 1px solid var(--text-dim);
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		color: var(--text-secondary);
 	}
 
 	.voter-grid {
@@ -640,7 +826,7 @@
 
 	.modal-card {
 		width: 100%;
-		max-width: 700px;
+		max-width: 750px;
 		max-height: 90vh;
 		overflow-y: auto;
 		display: flex;
@@ -682,6 +868,39 @@
 		gap: 12px;
 	}
 
+	.copy-toolbar {
+		background: var(--bg-space);
+		padding: 12px;
+		border: 1px solid var(--border-subtle);
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.copy-toolbar-actions {
+		display: flex;
+		gap: 10px;
+		flex-wrap: wrap;
+	}
+
+	.input-field-sm {
+		padding: 8px 12px;
+		font-size: 0.85rem;
+		flex: 1;
+	}
+
+	.btn-sm {
+		padding: 8px 16px;
+		font-size: 0.75rem;
+	}
+
+	.btn-cyan {
+		background: var(--accent-cyan);
+		color: #000000;
+		border-color: var(--accent-cyan);
+		box-shadow: 4px 4px 0px #ffffff;
+	}
+
 	.builder-row {
 		display: flex;
 		gap: 10px;
@@ -718,6 +937,7 @@
 		border-color: var(--accent-cyan);
 	}
 
+	.text-xs { font-size: 0.7rem; margin-bottom: 0; }
 	.sub-text { color: var(--text-secondary); font-size: 0.9rem; }
 	.muted-text { color: var(--text-dim); font-size: 0.95rem; }
 </style>
