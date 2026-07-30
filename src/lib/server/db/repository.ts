@@ -1,5 +1,47 @@
 import { memoryStore, type DbPoll, type DbCategory, type DbPollOption, type DbVoter, type DbVote } from './index';
-import type { RawVote, PollOption } from '../voting/types';
+import type { RawVote } from '../voting/types';
+import fs from 'fs';
+import path from 'path';
+
+const DATA_DIR = path.resolve(process.cwd(), 'data');
+const BACKUP_FILE = path.join(DATA_DIR, 'store.json');
+
+// Ensure data directory exists and auto-load saved state on startup
+try {
+	if (!fs.existsSync(DATA_DIR)) {
+		fs.mkdirSync(DATA_DIR, { recursive: true });
+	}
+	if (fs.existsSync(BACKUP_FILE)) {
+		const raw = fs.readFileSync(BACKUP_FILE, 'utf-8');
+		const json = JSON.parse(raw);
+		if (json.polls) memoryStore.polls = new Map(json.polls);
+		if (json.categories) memoryStore.categories = new Map(json.categories);
+		if (json.options) memoryStore.options = new Map(json.options);
+		if (json.voters) memoryStore.voters = new Map(json.voters);
+		if (json.votes) memoryStore.votes = new Map(json.votes);
+		console.log('[PartyVote Persistence] Successfully loaded saved polls from disk.');
+	}
+} catch (e) {
+	console.warn('[PartyVote Persistence] Failed to load store.json from disk:', e);
+}
+
+function persistStoreToDisk() {
+	try {
+		if (!fs.existsSync(DATA_DIR)) {
+			fs.mkdirSync(DATA_DIR, { recursive: true });
+		}
+		const state = {
+			polls: Array.from(memoryStore.polls.entries()),
+			categories: Array.from(memoryStore.categories.entries()),
+			options: Array.from(memoryStore.options.entries()),
+			voters: Array.from(memoryStore.voters.entries()),
+			votes: Array.from(memoryStore.votes.entries())
+		};
+		fs.writeFileSync(BACKUP_FILE, JSON.stringify(state, null, 2), 'utf-8');
+	} catch (e) {
+		console.error('[PartyVote Persistence] Failed to write store.json to disk:', e);
+	}
+}
 
 export const repo = {
 	async getPoll(id: string): Promise<DbPoll | null> {
@@ -18,6 +60,7 @@ export const repo = {
 			createdAt: new Date().toISOString()
 		};
 		memoryStore.polls.set(newPoll.id, newPoll);
+		persistStoreToDisk();
 		return newPoll;
 	},
 
@@ -26,11 +69,11 @@ export const repo = {
 		if (!existing) return null;
 		const updated = { ...existing, ...updates };
 		memoryStore.polls.set(id, updated);
+		persistStoreToDisk();
 		return updated;
 	},
 
 	async deletePoll(id: string): Promise<boolean> {
-		// Delete categories, options, voters, votes associated
 		const categories = await this.getCategoriesForPoll(id);
 		for (const cat of categories) {
 			await this.deleteCategory(cat.id);
@@ -39,7 +82,9 @@ export const repo = {
 		for (const v of voters) {
 			memoryStore.voters.delete(v.id);
 		}
-		return memoryStore.polls.delete(id);
+		const deleted = memoryStore.polls.delete(id);
+		persistStoreToDisk();
+		return deleted;
 	},
 
 	async getCategoriesForPoll(pollId: string): Promise<DbCategory[]> {
@@ -50,6 +95,7 @@ export const repo = {
 
 	async createCategory(cat: DbCategory): Promise<DbCategory> {
 		memoryStore.categories.set(cat.id, cat);
+		persistStoreToDisk();
 		return cat;
 	},
 
@@ -58,21 +104,22 @@ export const repo = {
 		if (!existing) return null;
 		const updated = { ...existing, ...updates };
 		memoryStore.categories.set(id, updated);
+		persistStoreToDisk();
 		return updated;
 	},
 
 	async deleteCategory(id: string): Promise<boolean> {
-		// Delete options in category
 		const opts = await this.getOptionsForCategory(id);
 		for (const o of opts) {
 			memoryStore.options.delete(o.id);
 		}
-		// Delete votes in category
 		const categoryVotes = Array.from(memoryStore.votes.values()).filter((v) => v.categoryId === id);
 		for (const v of categoryVotes) {
 			memoryStore.votes.delete(v.id);
 		}
-		return memoryStore.categories.delete(id);
+		const deleted = memoryStore.categories.delete(id);
+		persistStoreToDisk();
+		return deleted;
 	},
 
 	async getOptionsForCategory(categoryId: string): Promise<DbPollOption[]> {
@@ -89,11 +136,14 @@ export const repo = {
 
 	async createOption(opt: DbPollOption): Promise<DbPollOption> {
 		memoryStore.options.set(opt.id, opt);
+		persistStoreToDisk();
 		return opt;
 	},
 
 	async deleteOption(id: string): Promise<boolean> {
-		return memoryStore.options.delete(id);
+		const deleted = memoryStore.options.delete(id);
+		persistStoreToDisk();
+		return deleted;
 	},
 
 	async getVoterByToken(pollId: string, token: string): Promise<DbVoter | null> {
@@ -116,6 +166,7 @@ export const repo = {
 			if (existing.nickname !== nickname) {
 				existing.nickname = nickname;
 				memoryStore.voters.set(existing.id, existing);
+				persistStoreToDisk();
 			}
 			return existing;
 		}
@@ -128,11 +179,11 @@ export const repo = {
 			createdAt: new Date().toISOString()
 		};
 		memoryStore.voters.set(newVoter.id, newVoter);
+		persistStoreToDisk();
 		return newVoter;
 	},
 
 	async recordVote(categoryId: string, voterId: string, ballotData: any): Promise<DbVote> {
-		// Replace previous vote if voter already voted in this category
 		const existingVote = Array.from(memoryStore.votes.values()).find(
 			(v) => v.categoryId === categoryId && v.voterId === voterId
 		);
@@ -141,6 +192,7 @@ export const repo = {
 			existingVote.ballotData = ballotData;
 			existingVote.createdAt = new Date().toISOString();
 			memoryStore.votes.set(existingVote.id, existingVote);
+			persistStoreToDisk();
 			return existingVote;
 		}
 
@@ -152,6 +204,7 @@ export const repo = {
 			createdAt: new Date().toISOString()
 		};
 		memoryStore.votes.set(newVote.id, newVote);
+		persistStoreToDisk();
 		return newVote;
 	},
 
@@ -179,5 +232,49 @@ export const repo = {
 				ballotData: v.ballotData,
 				createdAt: v.createdAt
 			}));
+	},
+
+	// Export full poll dump JSON
+	async exportPoll(pollId: string) {
+		const poll = await this.getPoll(pollId);
+		if (!poll) return null;
+		const categories = await this.getCategoriesForPoll(pollId);
+		const options = await this.getAllOptionsForPoll(pollId);
+		const voters = await this.getVotersForPoll(pollId);
+		const votes = await this.getVotesForPoll(pollId);
+
+		return {
+			exportedAt: new Date().toISOString(),
+			poll,
+			categories,
+			options,
+			voters,
+			votes
+		};
+	},
+
+	// Import full poll dump JSON
+	async importPoll(dump: any) {
+		if (!dump || !dump.poll || !dump.poll.id) {
+			throw new Error('Invalid poll backup payload.');
+		}
+		const poll: DbPoll = dump.poll;
+		memoryStore.polls.set(poll.id, poll);
+
+		if (Array.isArray(dump.categories)) {
+			dump.categories.forEach((c: DbCategory) => memoryStore.categories.set(c.id, c));
+		}
+		if (Array.isArray(dump.options)) {
+			dump.options.forEach((o: DbPollOption) => memoryStore.options.set(o.id, o));
+		}
+		if (Array.isArray(dump.voters)) {
+			dump.voters.forEach((v: DbVoter) => memoryStore.voters.set(v.id, v));
+		}
+		if (Array.isArray(dump.votes)) {
+			dump.votes.forEach((v: DbVote) => memoryStore.votes.set(v.id, v));
+		}
+
+		persistStoreToDisk();
+		return poll;
 	}
 };

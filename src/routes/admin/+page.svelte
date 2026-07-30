@@ -76,6 +76,42 @@
 		eventSource.addEventListener('presentation_step_changed', () => loadPollDetails(pollId));
 	}
 
+	function exportPollBackup() {
+		if (!selectedPoll) return;
+		window.open(`/api/polls/${selectedPoll.poll.id}/export`, '_blank');
+	}
+
+	async function importPollBackup(e: Event) {
+		const fileInput = e.target as HTMLInputElement;
+		const file = fileInput.files?.[0];
+		if (!file) return;
+
+		try {
+			const text = await file.text();
+			const json = JSON.parse(text);
+
+			const res = await fetch('/api/polls/import', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(json)
+			});
+			const data = await res.json();
+
+			if (res.ok) {
+				successMsg = `Successfully imported poll "${data.poll.title}".`;
+				await loadPolls();
+				await loadPollDetails(data.poll.id);
+				setTimeout(() => (successMsg = ''), 3000);
+			} else {
+				errorMsg = data.error || 'Failed to import poll.';
+			}
+		} catch (err: any) {
+			errorMsg = err.message || 'Invalid backup file format.';
+		} finally {
+			fileInput.value = '';
+		}
+	}
+
 	function openCreateWizard() {
 		isEditingPoll = false;
 		editingPollId = '';
@@ -317,9 +353,26 @@
 			<a href="/" class="back-link">← HOME</a>
 			<span class="page-title-subtle">[ HOST MISSION CONTROL ]</span>
 		</div>
-		<button class="btn btn-primary" onclick={openCreateWizard}>
-			+ NEW POLL
-		</button>
+		<div class="header-actions">
+			{#if selectedPoll}
+				<button class="btn btn-sm" onclick={exportPollBackup} title="Download JSON Backup">
+					EXPORT BACKUP
+				</button>
+			{/if}
+			<label for="import-backup-file" class="btn btn-sm" style="margin: 0; cursor: pointer;">
+				IMPORT BACKUP
+			</label>
+			<input
+				type="file"
+				id="import-backup-file"
+				accept=".json"
+				style="display: none;"
+				onchange={importPollBackup}
+			/>
+			<button class="btn btn-primary" onclick={openCreateWizard}>
+				+ NEW POLL
+			</button>
+		</div>
 	</header>
 
 	{#if errorMsg}
@@ -677,6 +730,13 @@
 		justify-content: space-between;
 		align-items: center;
 		padding: 24px 36px;
+	}
+
+	.header-actions {
+		display: flex;
+		gap: 10px;
+		align-items: center;
+		flex-wrap: wrap;
 	}
 
 	.compact-panel {
