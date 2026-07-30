@@ -2,6 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { page } from '$app/state';
 	import QRCode from 'qrcode';
+	import TvBackgroundCanvas from '$lib/components/TvBackgroundCanvas.svelte';
 
 	let pollId = $derived(page.params.id);
 
@@ -14,6 +15,7 @@
 	let eventSource: EventSource | null = null;
 	let autoPlayInterval: NodeJS.Timeout | null = null;
 	let isAutoPlaying = $state(false);
+	let isFxEnabled = $state(true);
 
 	onMount(async () => {
 		await loadPollData();
@@ -135,6 +137,8 @@
 	<title>{pollData?.poll?.title || 'Party Vote'} | Presentation Display</title>
 </svelte:head>
 
+<TvBackgroundCanvas enabled={isFxEnabled} speedMultiplier={pollData?.poll?.status === 'closed' ? 1.6 : 1.0} />
+
 <div class="tv-fullwidth-container">
 	{#if loading}
 		<div class="center-state">
@@ -160,6 +164,9 @@
 			</div>
 
 			<div class="header-right">
+				<button class="btn btn-sm" onclick={() => (isFxEnabled = !isFxEnabled)}>
+					FX: {isFxEnabled ? 'ON' : 'OFF'}
+				</button>
 				<div class="ballot-counter">
 					<span class="num">{pollData.totalVoterCount}</span>
 					<span class="lbl">BALLOTS</span>
@@ -294,6 +301,8 @@
 <style>
 	/* Full-Width TV Layout (No center clamp constraint) */
 	.tv-fullwidth-container {
+		position: relative;
+		z-index: 1;
 		width: 100%;
 		padding: 16px 24px;
 		display: flex;
