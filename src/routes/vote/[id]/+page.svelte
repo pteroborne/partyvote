@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+	import { playTapSound, playStepSound, playWinnerSound, playHoverSound } from '$lib/audio';
 
 	let pollId = $derived(page.params.id);
 
@@ -9,7 +10,7 @@
 	let errorMsg = $state('');
 	let nickname = $state('');
 	let voterToken = $state('');
-	
+
 	// Multi-Step Wizard: 0 = Name Entry, 1..N = Categories, N+1 = Review & Submit
 	let currentStep = $state(0);
 	let isSubmitted = $state(false);
@@ -75,6 +76,7 @@
 	}
 
 	function assignRank(catId: string, optId: string, maxRanks: number = 3) {
+		playTapSound();
 		const currentList: string[] = [...(ballots[catId] || [])];
 		if (currentList.includes(optId)) return;
 		if (currentList.length >= maxRanks) return;
@@ -83,6 +85,7 @@
 	}
 
 	function unassignRank(catId: string, optId: string) {
+		playTapSound();
 		const currentList: string[] = [...(ballots[catId] || [])];
 		const idx = currentList.indexOf(optId);
 		if (idx === -1) return;
@@ -91,6 +94,7 @@
 	}
 
 	function moveRank(catId: string, optId: string, direction: 'up' | 'down') {
+		playTapSound();
 		const currentList: string[] = [...(ballots[catId] || [])];
 		const idx = currentList.indexOf(optId);
 		if (idx === -1) return;
@@ -105,6 +109,7 @@
 	}
 
 	function toggleApproval(catId: string, optId: string) {
+		playTapSound();
 		const currentList: string[] = [...(ballots[catId] || [])];
 		const idx = currentList.indexOf(optId);
 		if (idx > -1) {
@@ -116,6 +121,7 @@
 	}
 
 	function setScore(catId: string, optId: string, score: number) {
+		playTapSound();
 		const currentMap = { ...(ballots[catId] || {}) };
 		currentMap[optId] = score;
 		ballots[catId] = currentMap;
@@ -127,11 +133,13 @@
 			return;
 		}
 		errorMsg = '';
+		playStepSound();
 		currentStep++;
 	}
 
 	function prevStep() {
 		errorMsg = '';
+		playStepSound();
 		if (currentStep > 0) currentStep--;
 	}
 
@@ -157,6 +165,7 @@
 			const data = await res.json();
 			if (res.ok) {
 				isSubmitted = true;
+				playWinnerSound(); // Plays tactile seismic charge!
 			} else {
 				errorMsg = data.error || 'Failed to submit vote.';
 			}
@@ -184,48 +193,59 @@
 			<div class="panel-tag">[ ERROR ]</div>
 			<h2>{errorMsg}</h2>
 			<div class="space-v"></div>
-			<a href="/" class="btn">RETURN HOME</a>
+			<a href="/" class="btn" onclick={playTapSound} onmouseenter={playHoverSound}>RETURN HOME</a>
 		</div>
 	{:else if pollData}
 		{@const totalCategories = pollData.categories.length}
-		{@const totalSteps = totalCategories + 1} // Step 0: Name, Step 1..N: Categories
+		{@const totalSteps = totalCategories + 1}
 
-		<!-- Compact Header -->
+		<!-- Header -->
 		<header class="empire-panel compact-header">
 			<span class="page-title-subtle">[ OFFICIAL BALLOT ]</span>
 			<h2>{pollData.poll.title}</h2>
 		</header>
 
 		{#if isSubmitted}
-			<div class="empire-panel center-card">
+			<div class="empire-panel center-card celebrate-card">
+				<div class="success-icon-badge">✓</div>
 				<div class="panel-tag">[ SUBMISSION CONFIRMED ]</div>
-				<h2>BALLOT RECORDED</h2>
-				<p>Thank you for voting, <strong>{nickname}</strong>.</p>
+				<h2>BALLOT RECORDED!</h2>
+				<p class="thank-you-msg">Thank you for voting, <strong>{nickname}</strong>.</p>
 				<p class="subtext">Watch the TV display for live updates and ceremony results.</p>
 				<div class="space-v"></div>
-				<button class="btn" onclick={() => { isSubmitted = false; currentStep = 1; }}>
-					EDIT BALLOT
+				<button
+					class="btn btn-primary"
+					onclick={() => { isSubmitted = false; currentStep = 1; playTapSound(); }}
+					onmouseenter={playHoverSound}
+				>
+					EDIT YOUR BALLOT
 				</button>
 			</div>
 		{:else if pollData.poll.status !== 'active'}
 			<div class="empire-panel center-card">
 				<div class="panel-tag">[ STATUS ]</div>
 				<h2>VOTING CLOSED</h2>
-				<p class="subtext">Voting is closed. Watch the TV screen for winners.</p>
+				<p class="subtext">Voting is currently closed. Watch the TV screen for winners reveal.</p>
 			</div>
 		{:else}
 			{#if errorMsg}
 				<div class="alert alert-error">{errorMsg}</div>
 			{/if}
 
-			<!-- Progress Step Indicator -->
-			<div class="step-progress-bar">
-				<span>STEP {currentStep + 1} OF {totalSteps + 1}</span>
+			<!-- Progress Bar -->
+			<div class="step-progress-container">
+				<div class="step-progress-bar">
+					<div
+						class="step-progress-fill"
+						style="width: {((currentStep + 1) / (totalSteps + 1)) * 100}%"
+					></div>
+				</div>
+				<span class="step-label-text">STEP {currentStep + 1} OF {totalSteps + 1}</span>
 			</div>
 
 			<!-- STEP 0: ENTER NAME -->
 			{#if currentStep === 0}
-				<div class="empire-panel wizard-step-card">
+				<div class="empire-panel wizard-step-card animated-step">
 					<div class="panel-tag">[ STEP 1: IDENTIFICATION ]</div>
 					<h2>ENTER YOUR NAME</h2>
 					<p class="subtext">Your name will appear on the TV screen voter activity list.</p>
@@ -240,7 +260,7 @@
 
 					<div class="space-v"></div>
 
-					<button class="btn btn-primary full-w" onclick={proceedToNextStep}>
+					<button class="btn btn-primary full-w" onclick={proceedToNextStep} onmouseenter={playHoverSound}>
 						PROCEED TO VOTING →
 					</button>
 				</div>
@@ -253,7 +273,7 @@
 				{@const cat = catItem.category}
 				{@const options = catItem.options}
 
-				<div class="empire-panel wizard-step-card">
+				<div class="empire-panel wizard-step-card animated-step">
 					<div class="step-head">
 						<div class="panel-tag">[ CATEGORY {currentStep} OF {totalCategories} ]</div>
 						<span class="badge badge-strategy">{cat.votingStrategy}</span>
@@ -264,7 +284,7 @@
 
 					<div class="space-v"></div>
 
-					<!-- Ranked Choice UI: Pick Your Top 3 -->
+					<!-- Ranked Choice UI -->
 					{#if cat.votingStrategy === 'ranked-choice'}
 						{@const rankedList = ballots[cat.id] || []}
 						{@const maxRanks = Math.min(3, options.length)}
@@ -307,7 +327,7 @@
 												</div>
 											{:else}
 												<div class="slot-placeholder">
-													<span>Tap a candidate below to select</span>
+													<span>Tap candidate below to select</span>
 												</div>
 											{/if}
 										</div>
@@ -326,6 +346,7 @@
 										<button
 											class="opt-btn-card {isSelected ? 'opt-ranked-active' : ''} {isPoolDisabled ? 'opt-pool-full' : ''}"
 											disabled={isPoolDisabled}
+											onmouseenter={playHoverSound}
 											onclick={() => {
 												if (isSelected) {
 													unassignRank(cat.id, opt.id);
@@ -358,12 +379,16 @@
 							{#each options as opt}
 								<button
 									class="opt-btn-card {ballots[cat.id] === opt.id ? 'opt-active' : ''}"
-									onclick={() => (ballots[cat.id] = opt.id)}
+									onmouseenter={playHoverSound}
+									onclick={() => { playTapSound(); ballots[cat.id] = opt.id; }}
 								>
 									<div class="opt-content">
 										<strong>{opt.title}</strong>
 										{#if opt.description}<span class="opt-desc">{opt.description}</span>{/if}
 									</div>
+									{#if ballots[cat.id] === opt.id}
+										<span class="active-check">✓</span>
+									{/if}
 								</button>
 							{/each}
 						</div>
@@ -376,12 +401,16 @@
 								{@const isApproved = (ballots[cat.id] || []).includes(opt.id)}
 								<button
 									class="opt-btn-card {isApproved ? 'opt-active' : ''}"
+									onmouseenter={playHoverSound}
 									onclick={() => toggleApproval(cat.id, opt.id)}
 								>
 									<div class="opt-content">
 										<strong>{opt.title}</strong>
 										{#if opt.description}<span class="opt-desc">{opt.description}</span>{/if}
 									</div>
+									{#if isApproved}
+										<span class="active-check">✓ APPROVED</span>
+									{/if}
 								</button>
 							{/each}
 						</div>
@@ -401,12 +430,13 @@
 										{#each [1, 2, 3, 4, 5] as star}
 											<button
 												class="star-tap {star <= currentRating ? 'star-gold' : ''}"
+												onmouseenter={playHoverSound}
 												onclick={() => setScore(cat.id, opt.id, star)}
 											>
 												★
 											</button>
 										{/each}
-										<span class="star-num">{currentRating}/5</span>
+										<span class="star-num-badge">{currentRating}/5</span>
 									</div>
 								</div>
 							{/each}
@@ -416,8 +446,8 @@
 					<div class="space-v"></div>
 
 					<div class="wizard-nav-row">
-						<button class="btn" onclick={prevStep}>← PREVIOUS</button>
-						<button class="btn btn-primary" onclick={proceedToNextStep}>
+						<button class="btn" onclick={prevStep} onmouseenter={playHoverSound}>← PREVIOUS</button>
+						<button class="btn btn-primary" onclick={proceedToNextStep} onmouseenter={playHoverSound}>
 							{currentStep < totalCategories ? 'NEXT CATEGORY →' : 'REVIEW BALLOT →'}
 						</button>
 					</div>
@@ -426,10 +456,10 @@
 
 			<!-- FINAL STEP: REVIEW & SUBMIT -->
 			{#if currentStep === totalSteps}
-				<div class="empire-panel wizard-step-card">
+				<div class="empire-panel wizard-step-card animated-step">
 					<div class="panel-tag">[ FINAL STEP: REVIEW & CONFIRM ]</div>
 					<h2>CONFIRM YOUR BALLOT</h2>
-					<p class="subtext">Review voter details before final submission.</p>
+					<p class="subtext">Review your selections before submitting.</p>
 					<div class="space-v"></div>
 
 					<div class="review-box">
@@ -438,16 +468,21 @@
 							<strong>{nickname}</strong>
 						</div>
 						<div class="review-row">
-							<span class="lbl">CATEGORIES VOTED:</span>
-							<strong>{totalCategories} Categories Completed</strong>
+							<span class="lbl">COMPLETED CATEGORIES:</span>
+							<strong>{totalCategories} Categories</strong>
 						</div>
 					</div>
 
 					<div class="space-v"></div>
 
 					<div class="wizard-nav-row">
-						<button class="btn" onclick={prevStep}>← BACK</button>
-						<button class="btn btn-primary flex-1" disabled={submitting} onclick={handleSubmit}>
+						<button class="btn" onclick={prevStep} onmouseenter={playHoverSound}>← BACK</button>
+						<button
+							class="btn btn-primary flex-1"
+							disabled={submitting}
+							onclick={handleSubmit}
+							onmouseenter={playHoverSound}
+						>
 							{submitting ? 'SUBMITTING...' : 'CONFIRM & SUBMIT BALLOT'}
 						</button>
 					</div>
@@ -459,7 +494,7 @@
 
 <style>
 	.vote-space-layout {
-		max-width: 540px;
+		max-width: 560px;
 		margin: 0 auto;
 		display: flex;
 		flex-direction: column;
@@ -472,13 +507,73 @@
 		margin-bottom: 0;
 	}
 
+	.step-progress-container {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+
 	.step-progress-bar {
+		height: 7px;
+		background: rgba(255, 255, 255, 0.12);
+		border-radius: 0;
+		overflow: hidden;
+	}
+
+	.step-progress-fill {
+		height: 100%;
+		background: var(--accent-cyan);
+		box-shadow: 0 0 12px var(--accent-cyan);
+		transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	.step-label-text {
 		font-family: var(--font-mono);
 		font-size: 0.75rem;
 		font-weight: 700;
 		color: var(--accent-cyan);
 		letter-spacing: 0.12em;
+		text-align: right;
+	}
+
+	.center-card {
 		text-align: center;
+		padding: 40px 24px;
+	}
+
+	.celebrate-card {
+		border-color: var(--accent-cyan);
+		box-shadow: var(--glow-cyan);
+		animation: celebrateScale 0.45s ease-out;
+	}
+
+	.animated-step {
+		animation: popZoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	.success-icon-badge {
+		width: 64px;
+		height: 64px;
+		margin: 0 auto 16px;
+		background: var(--accent-cyan);
+		color: #000000;
+		font-size: 2.2rem;
+		font-weight: 800;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: var(--glow-cyan);
+	}
+
+	.thank-you-msg {
+		font-size: 1.1rem;
+		margin-top: 8px;
+	}
+
+	.subtext {
+		color: var(--text-secondary);
+		font-size: 0.9rem;
+		margin-top: 4px;
 	}
 
 	.wizard-step-card {
@@ -491,6 +586,7 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+		margin-bottom: 8px;
 	}
 
 	.wizard-nav-row {
@@ -504,7 +600,8 @@
 
 	.review-box {
 		background: var(--bg-panel-elevated);
-		border: var(--border-subtle);
+		border: 1px solid var(--accent-cyan);
+		box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
 		padding: 20px;
 		display: flex;
 		flex-direction: column;
@@ -554,7 +651,7 @@
 
 	.slot-filled {
 		border: 2px solid var(--accent-cyan);
-		box-shadow: 3px 3px 0px var(--accent-cyan);
+		box-shadow: 4px 4px 0px var(--accent-cyan), var(--glow-cyan);
 	}
 
 	.slot-empty {
@@ -584,6 +681,11 @@
 		flex-direction: column;
 	}
 
+	.opt-desc {
+		font-size: 0.8rem;
+		color: var(--text-secondary);
+	}
+
 	.slot-placeholder {
 		flex: 1;
 		font-family: var(--font-mono);
@@ -598,65 +700,59 @@
 	}
 
 	.btn-icon {
-		padding: 4px 10px;
-		background: var(--bg-space);
-		border: 1px solid var(--text-secondary);
-		color: var(--text-primary);
+		padding: 6px 10px;
 		font-family: var(--font-mono);
-		font-size: 0.85rem;
+		font-size: 0.8rem;
+		background: var(--bg-panel);
+		border: 1px solid var(--border-subtle);
+		color: #ffffff;
 		cursor: pointer;
-		transition: background 0.15s ease;
 	}
 
 	.btn-icon:hover {
-		background: var(--accent-cyan);
-		color: #000000;
+		border-color: var(--accent-cyan);
+		color: var(--accent-cyan);
 	}
 
-	.btn-remove {
+	.btn-remove:hover {
 		border-color: var(--accent-red);
 		color: var(--accent-red);
 	}
 
-	.btn-remove:hover {
-		background: var(--accent-red);
+	.options-column {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.opt-btn-card {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 16px 20px;
+		background: var(--bg-panel-elevated);
+		border: 1px solid var(--border-subtle);
 		color: #ffffff;
+		text-align: left;
+		cursor: pointer;
+		transition: all 0.18s ease;
 	}
 
-	.rank-indicator {
-		margin-right: 12px;
-		display: flex;
-		align-items: center;
+	.opt-btn-card:hover:not(:disabled) {
+		border-color: #ffffff;
+		transform: translateX(6px);
+		box-shadow: 4px 4px 0px rgba(255, 255, 255, 0.1);
 	}
 
-	.rank-num-badge {
-		width: 32px;
-		height: 32px;
-		background: var(--accent-cyan);
-		color: #000000;
-		font-family: var(--font-mono);
-		font-weight: 800;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.rank-add-badge {
-		width: 32px;
-		height: 32px;
-		border: 1px dashed var(--text-secondary);
-		color: var(--text-secondary);
-		font-family: var(--font-mono);
-		font-weight: 700;
-		font-size: 1.2rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
+	.opt-active {
+		border: 2px solid var(--accent-cyan);
+		background: rgba(0, 240, 255, 0.12);
+		box-shadow: 4px 4px 0px var(--accent-cyan), var(--glow-cyan);
 	}
 
 	.opt-ranked-active {
 		border: 2px solid var(--accent-cyan);
-		background: rgba(0, 240, 255, 0.08);
+		background: rgba(0, 240, 255, 0.12);
 	}
 
 	.opt-pool-full {
@@ -664,47 +760,45 @@
 		cursor: not-allowed;
 	}
 
-	.options-column, .score-column {
-		display: flex;
-		flex-direction: column;
-		gap: 12px;
+	.rank-indicator {
+		margin-right: 12px;
 	}
 
-	.opt-desc {
+	.rank-num-badge {
+		font-family: var(--font-mono);
+		font-weight: 800;
 		font-size: 0.85rem;
+		padding: 4px 8px;
+		background: var(--accent-cyan);
+		color: #000000;
+	}
+
+	.rank-add-badge {
+		font-family: var(--font-mono);
+		font-size: 1.1rem;
 		color: var(--text-dim);
 	}
 
-	.opt-btn-card {
-		display: flex;
-		align-items: center;
-		padding: 16px 20px;
-		background: var(--bg-panel-elevated);
-		border: var(--border-subtle);
-		color: var(--text-primary);
-		text-align: left;
-		cursor: pointer;
-		transition: all 0.15s ease;
+	.active-check {
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		font-weight: 800;
+		color: var(--accent-cyan);
 	}
 
-	.opt-active {
-		border: 2px solid #ffffff;
-		background: rgba(255, 255, 255, 0.12);
-		box-shadow: 4px 4px 0px var(--accent-cyan);
-	}
-
-	.opt-content {
+	.score-column {
 		display: flex;
 		flex-direction: column;
+		gap: 16px;
 	}
 
 	.score-item-box {
 		padding: 16px;
 		background: var(--bg-panel-elevated);
-		border: var(--border-subtle);
+		border: 1px solid var(--border-subtle);
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: 10px;
 	}
 
 	.star-row {
@@ -716,47 +810,30 @@
 	.star-tap {
 		background: none;
 		border: none;
-		font-size: 1.8rem;
-		color: var(--text-dim);
+		font-size: 1.7rem;
+		color: rgba(255, 255, 255, 0.2);
 		cursor: pointer;
+		transition: transform 0.12s ease, color 0.12s ease;
+	}
+
+	.star-tap:hover {
+		transform: scale(1.3);
 	}
 
 	.star-gold {
-		color: var(--accent-cyan);
+		color: var(--accent-gold);
+		text-shadow: 0 0 12px var(--accent-gold);
 	}
 
-	.star-num {
+	.star-num-badge {
+		margin-left: auto;
 		font-family: var(--font-mono);
+		font-size: 0.85rem;
 		font-weight: 700;
-		font-size: 1rem;
-		color: var(--accent-cyan);
-		margin-left: 8px;
-	}
-
-	.center-card {
-		padding: 48px 24px;
-		text-align: center;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 16px;
-	}
-
-	.subtext {
-		color: var(--text-dim);
-		font-size: 0.9rem;
-	}
-
-	.alert {
-		padding: 14px 20px;
-		font-family: var(--font-mono);
-		font-weight: 700;
-		border: 2px solid #ffffff;
-	}
-
-	.alert-error {
-		background: var(--accent-red);
-		color: #ffffff;
-		border-color: var(--accent-red);
+		padding: 4px 8px;
+		background: rgba(255, 215, 0, 0.18);
+		color: var(--accent-gold);
+		border: 1px solid var(--accent-gold);
+		box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
 	}
 </style>

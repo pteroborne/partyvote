@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+	import { playTapSound, playStepSound, playHoverSound } from '$lib/audio';
 
 	let polls: any[] = $state([]);
 	let selectedPoll: any = $state(null);
@@ -113,6 +114,7 @@
 	}
 
 	function openCreateWizard() {
+		playTapSound();
 		isEditingPoll = false;
 		editingPollId = '';
 		wizardTitle = '';
@@ -136,6 +138,7 @@
 
 	function openEditWizard() {
 		if (!selectedPoll) return;
+		playTapSound();
 		isEditingPoll = true;
 		editingPollId = selectedPoll.poll.id;
 		wizardTitle = selectedPoll.poll.title;
@@ -143,7 +146,6 @@
 		wizardWinnerAllocation = selectedPoll.poll.winnerAllocationStrategy;
 		wizardShowLiveTotals = selectedPoll.poll.showLiveTotals;
 
-		// Deep clone categories & options for editing
 		categories = selectedPoll.categories.map((c: any) => ({
 			id: c.category.id,
 			title: c.category.title,
@@ -159,6 +161,62 @@
 		showWizardModal = true;
 	}
 
+	function applyPreset(presetType: 'costume' | 'gamenight' | 'awards') {
+		playTapSound();
+		if (presetType === 'costume') {
+			wizardTitle = 'Halloween Costume Contest';
+			wizardDesc = 'Scan to vote for the best party costumes!';
+			categories = [
+				{
+					id: '',
+					title: 'Best Overall Costume',
+					description: 'Rank your top 3 favorite costumes',
+					votingStrategy: 'ranked-choice',
+					options: [
+						{ id: '', title: 'Cyberpunk Ninja', description: '', candidateKey: 'alex' },
+						{ id: '', title: 'Disco Banana', description: '', candidateKey: 'sam' },
+						{ id: '', title: 'Retro Gamer', description: '', candidateKey: 'jordan' }
+					]
+				},
+				{
+					id: '',
+					title: 'Most Creative / Funniest',
+					description: 'Single vote for funniest entry',
+					votingStrategy: 'plurality',
+					options: [
+						{ id: '', title: 'Inflatable T-Rex', description: '', candidateKey: 'taylor' },
+						{ id: '', title: 'Cereal Killer', description: '', candidateKey: 'chris' }
+					]
+				}
+			];
+		} else if (presetType === 'gamenight') {
+			wizardTitle = 'Party Game Night Awards';
+			wizardDesc = 'Rate and vote on the night\'s gaming MVPs and best moments!';
+			categories = [
+				{
+					id: '',
+					title: 'Game Night MVP',
+					description: 'Rank your top players',
+					votingStrategy: 'ranked-choice',
+					options: [
+						{ id: '', title: 'Alex', description: 'Board game champion', candidateKey: 'alex' },
+						{ id: '', title: 'Sam', description: 'Trivia master', candidateKey: 'sam' }
+					]
+				},
+				{
+					id: '',
+					title: 'Favorite Game Played',
+					description: 'Rate each game 1-5 stars',
+					votingStrategy: 'score',
+					options: [
+						{ id: '', title: 'Catan', description: '', candidateKey: 'catan' },
+						{ id: '', title: 'Codenames', description: '', candidateKey: 'codenames' }
+					]
+				}
+			];
+		}
+	}
+
 	async function saveWizardPoll() {
 		if (!wizardTitle.trim()) {
 			errorMsg = 'Please enter a poll title.';
@@ -166,8 +224,8 @@
 		}
 
 		try {
+			playStepSound();
 			if (isEditingPoll) {
-				// UPDATE EXISTING POLL
 				const res = await fetch(`/api/polls/${editingPollId}`, {
 					method: 'PUT',
 					headers: { 'Content-Type': 'application/json' },
@@ -190,7 +248,6 @@
 					errorMsg = data.error || 'Failed to update poll';
 				}
 			} else {
-				// CREATE NEW POLL
 				const res = await fetch('/api/polls', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
@@ -220,6 +277,7 @@
 
 	async function toggleStatus(newStatus: string) {
 		if (!selectedPoll) return;
+		playStepSound();
 		try {
 			const res = await fetch(`/api/polls/${selectedPoll.poll.id}/status`, {
 				method: 'POST',
@@ -242,6 +300,7 @@
 
 	async function toggleTvTotals(show: boolean) {
 		if (!selectedPoll) return;
+		playTapSound();
 		try {
 			const res = await fetch(`/api/polls/${selectedPoll.poll.id}`, {
 				method: 'PUT',
@@ -260,6 +319,7 @@
 
 	async function setRevealStep(step: number) {
 		if (!selectedPoll) return;
+		playStepSound();
 		try {
 			await fetch(`/api/polls/${selectedPoll.poll.id}/reveal`, {
 				method: 'POST',
@@ -274,6 +334,7 @@
 
 	async function deletePoll(id: string) {
 		if (!confirm('Are you sure you want to delete this party poll?')) return;
+		playStepSound();
 		try {
 			await fetch(`/api/polls/${id}`, { method: 'DELETE' });
 			selectedPoll = null;
@@ -284,6 +345,7 @@
 	}
 
 	function addCategory() {
+		playTapSound();
 		categories.push({
 			id: '',
 			title: `Category ${categories.length + 1}`,
@@ -294,10 +356,12 @@
 	}
 
 	function removeCategory(index: number) {
+		playTapSound();
 		categories.splice(index, 1);
 	}
 
 	function addOption(catIndex: number) {
+		playTapSound();
 		categories[catIndex].options.push({
 			id: '',
 			title: `Candidate ${categories[catIndex].options.length + 1}`,
@@ -307,14 +371,14 @@
 	}
 
 	function removeOption(catIndex: number, optIndex: number) {
+		playTapSound();
 		categories[catIndex].options.splice(optIndex, 1);
 	}
 
-	// Copy Candidates Utility Functions
 	function copyCandidatesFromCategory(targetCatIndex: number, sourceCatIndex: number) {
 		if (sourceCatIndex < 0 || sourceCatIndex >= categories.length) return;
+		playTapSound();
 		const sourceOpts = categories[sourceCatIndex].options;
-		// Clone options without preserving IDs so they get created as new options for this category
 		categories[targetCatIndex].options = sourceOpts.map((o: any) => ({
 			id: '',
 			title: o.title,
@@ -326,6 +390,7 @@
 	}
 
 	function copyCandidatesToAllCategories(sourceCatIndex: number) {
+		playTapSound();
 		const sourceOpts = categories[sourceCatIndex].options;
 		for (let i = 0; i < categories.length; i++) {
 			if (i !== sourceCatIndex) {
@@ -347,19 +412,29 @@
 </svelte:head>
 
 <div class="admin-space-layout">
-	<!-- Subtle Top Header -->
+	<!-- Top Header -->
 	<header class="empire-panel admin-header">
 		<div>
-			<a href="/" class="back-link">← HOME</a>
+			<a href="/" class="back-link" onclick={playTapSound} onmouseenter={playHoverSound}>← HOME PORTAL</a>
 			<span class="page-title-subtle">[ HOST MISSION CONTROL ]</span>
 		</div>
 		<div class="header-actions">
 			{#if selectedPoll}
-				<button class="btn btn-sm" onclick={exportPollBackup} title="Download JSON Backup">
+				<button
+					class="btn btn-sm btn-ghost"
+					onclick={exportPollBackup}
+					onmouseenter={playHoverSound}
+					title="Download JSON Backup"
+				>
 					EXPORT BACKUP
 				</button>
 			{/if}
-			<label for="import-backup-file" class="btn btn-sm" style="margin: 0; cursor: pointer;">
+			<label
+				for="import-backup-file"
+				class="btn btn-sm btn-ghost"
+				style="margin: 0; cursor: pointer;"
+				onmouseenter={playHoverSound}
+			>
 				IMPORT BACKUP
 			</label>
 			<input
@@ -369,7 +444,11 @@
 				style="display: none;"
 				onchange={importPollBackup}
 			/>
-			<button class="btn btn-primary" onclick={openCreateWizard}>
+			<button
+				class="btn btn-primary"
+				onclick={openCreateWizard}
+				onmouseenter={playHoverSound}
+			>
 				+ NEW POLL
 			</button>
 		</div>
@@ -384,7 +463,7 @@
 
 	<!-- Active Poll Selector -->
 	<section class="empire-panel compact-panel">
-		<div class="panel-tag">[ SELECT PARTY POLL ]</div>
+		<div class="panel-tag">[ SELECT ACTIVE PARTY POLL ]</div>
 		<select
 			class="input-field"
 			onchange={(e) => loadPollDetails((e.target as HTMLSelectElement).value)}
@@ -407,19 +486,22 @@
 		<div class="admin-tabs-nav">
 			<button
 				class="admin-tab-btn {activeAdminTab === 'overview' ? 'admin-tab-active' : ''}"
-				onclick={() => (activeAdminTab = 'overview')}
+				onmouseenter={playHoverSound}
+				onclick={() => { playTapSound(); activeAdminTab = 'overview'; }}
 			>
-				OVERVIEW & REVEAL
+				OVERVIEW & CEREMONY
 			</button>
 			<button
 				class="admin-tab-btn {activeAdminTab === 'settings' ? 'admin-tab-active' : ''}"
-				onclick={() => (activeAdminTab = 'settings')}
+				onmouseenter={playHoverSound}
+				onclick={() => { playTapSound(); activeAdminTab = 'settings'; }}
 			>
-				TV SETTINGS
+				TV DISPLAY SETTINGS
 			</button>
 			<button
 				class="admin-tab-btn {activeAdminTab === 'categories' ? 'admin-tab-active' : ''}"
-				onclick={() => (activeAdminTab = 'categories')}
+				onmouseenter={playHoverSound}
+				onclick={() => { playTapSound(); activeAdminTab = 'categories'; }}
 			>
 				CATEGORIES ({totalCats})
 			</button>
@@ -430,7 +512,7 @@
 			<section class="empire-panel">
 				<div class="status-top">
 					<div>
-						<div class="panel-tag">[ POLL STATUS ]</div>
+						<div class="panel-tag">[ POLL STATUS & CONTROL ]</div>
 						<h2>{poll.title}</h2>
 						{#if poll.description}<p class="sub-text">{poll.description}</p>{/if}
 					</div>
@@ -438,7 +520,7 @@
 						<span class="badge {isClosed ? 'badge-closed' : 'badge-active'}">
 							{poll.status.toUpperCase()}
 						</span>
-						<button class="btn btn-cyan btn-sm" onclick={openEditWizard}>
+						<button class="btn btn-cyan btn-sm" onclick={openEditWizard} onmouseenter={playHoverSound}>
 							EDIT POLL
 						</button>
 					</div>
@@ -448,30 +530,68 @@
 
 				<div class="action-row">
 					{#if !isClosed}
-						<button class="btn btn-danger flex-1" onclick={() => toggleStatus('closed')}>
-							CLOSE POLL & BEGIN CEREMONY
+						<button
+							class="btn btn-danger flex-1"
+							onclick={() => toggleStatus('closed')}
+							onmouseenter={playHoverSound}
+						>
+							🔒 CLOSE VOTING & START CEREMONY
 						</button>
 					{:else}
-						<button class="btn btn-primary flex-1" onclick={() => toggleStatus('active')}>
-							RE-OPEN VOTING
+						<button
+							class="btn btn-primary flex-1"
+							onclick={() => toggleStatus('active')}
+							onmouseenter={playHoverSound}
+						>
+							🔓 RE-OPEN VOTING
 						</button>
 					{/if}
-					<a href="/tv/{poll.id}" class="btn flex-1" target="_blank">
-						OPEN TV DISPLAY
+					<a
+						href="/tv/{poll.id}"
+						class="btn flex-1"
+						target="_blank"
+						onclick={playTapSound}
+						onmouseenter={playHoverSound}
+					>
+						📺 OPEN TV DISPLAY
 					</a>
-					<a href="/vote/{poll.id}" class="btn flex-1" target="_blank">
-						TEST GUEST VOTE
+					<a
+						href="/vote/{poll.id}"
+						class="btn flex-1"
+						target="_blank"
+						onclick={playTapSound}
+						onmouseenter={playHoverSound}
+					>
+						📱 TEST GUEST BALLOT
 					</a>
 				</div>
 			</section>
 
 			{#if isClosed}
-				<section class="empire-panel ceremony-control-card">
-					<div class="panel-tag">[ TV PRESENTATION CONTROLS ]</div>
+				<section class="empire-panel ceremony-control-card empire-panel-cyan">
+					<div class="panel-tag">[ TV PRESENTATION REVEAL CONTROLS ]</div>
 					<div class="space-v"></div>
 
-					<div class="reveal-counter">
-						<span>REVEAL STEP {currentStep} OF {totalCats}</span>
+					<div class="reveal-stepper-visual">
+						<div class="stepper-track">
+							<button
+								class="step-pill {currentStep === 0 ? 'step-pill-active' : ''}"
+								onmouseenter={playHoverSound}
+								onclick={() => setRevealStep(0)}
+							>
+								STANDBY
+							</button>
+							{#each selectedPoll.categories as catItem, cIdx}
+								{@const stepNum = cIdx + 1}
+								<button
+									class="step-pill {currentStep === stepNum ? 'step-pill-active' : ''}"
+									onmouseenter={playHoverSound}
+									onclick={() => setRevealStep(stepNum)}
+								>
+									#{stepNum} {catItem.category.title}
+								</button>
+							{/each}
+						</div>
 					</div>
 
 					<div class="space-v"></div>
@@ -480,24 +600,26 @@
 						<button
 							class="btn"
 							disabled={currentStep <= 0}
+							onmouseenter={playHoverSound}
 							onclick={() => setRevealStep(currentStep - 1)}
 						>
-							PREVIOUS WINNER
+							← PREVIOUS WINNER
 						</button>
 
 						<button
-							class="btn btn-primary"
+							class="btn btn-gold flex-1"
 							disabled={currentStep >= totalCats}
+							onmouseenter={playHoverSound}
 							onclick={() => setRevealStep(currentStep + 1)}
 						>
-							NEXT WINNER ({currentStep < totalCats ? selectedPoll.categories[currentStep]?.category?.title : 'COMPLETE'})
+							🏆 NEXT WINNER ({currentStep < totalCats ? selectedPoll.categories[currentStep]?.category?.title : 'CEREMONY COMPLETE'})
 						</button>
 					</div>
 				</section>
 			{/if}
 
 			<section class="empire-panel">
-				<div class="panel-tag">[ SUBMITTED BALLOTS // COUNT: {selectedPoll.voters.length} ]</div>
+				<div class="panel-tag">[ SUBMITTED GUEST BALLOTS // COUNT: {selectedPoll.voters.length} ]</div>
 				<div class="space-v"></div>
 
 				{#if selectedPoll.voters.length === 0}
@@ -524,12 +646,14 @@
 				<div class="setting-row">
 					<button
 						class="btn {selectedPoll.poll.showLiveTotals ? '' : 'btn-primary'}"
+						onmouseenter={playHoverSound}
 						onclick={() => toggleTvTotals(false)}
 					>
 						SECRET BALLOT (RECOMMENDED)
 					</button>
 					<button
 						class="btn {selectedPoll.poll.showLiveTotals ? 'btn-primary' : ''}"
+						onmouseenter={playHoverSound}
 						onclick={() => toggleTvTotals(true)}
 					>
 						SHOW LIVE RUNNING TOTALS
@@ -543,7 +667,7 @@
 			<section class="empire-panel">
 				<div class="cat-tab-header">
 					<div class="panel-tag">[ CONFIGURATIONS ]</div>
-					<button class="btn btn-cyan btn-sm" onclick={openEditWizard}>
+					<button class="btn btn-cyan btn-sm" onclick={openEditWizard} onmouseenter={playHoverSound}>
 						EDIT CATEGORIES & CANDIDATES
 					</button>
 				</div>
@@ -568,7 +692,7 @@
 		{/if}
 
 		<div class="danger-row">
-			<button class="btn btn-danger" onclick={() => deletePoll(poll.id)}>
+			<button class="btn btn-danger" onclick={() => deletePoll(poll.id)} onmouseenter={playHoverSound}>
 				DELETE POLL
 			</button>
 		</div>
@@ -577,14 +701,35 @@
 
 <!-- Modal Wizard (Create & Edit Poll) -->
 {#if showWizardModal}
-	<div class="modal-overlay">
-		<div class="modal-card empire-panel">
+	<div class="modal-backdrop">
+		<div class="modal-content empire-panel">
 			<div class="modal-header">
 				<h2>{isEditingPoll ? 'EDIT POLL & CATEGORIES' : 'CREATE NEW POLL'}</h2>
 				<button class="close-btn" onclick={() => (showWizardModal = false)}>✕</button>
 			</div>
 
 			<div class="modal-body">
+				{#if !isEditingPoll}
+					<div class="presets-row">
+						<span class="panel-tag">QUICK PRESETS:</span>
+						<button
+							class="btn btn-sm btn-ghost"
+							onmouseenter={playHoverSound}
+							onclick={() => applyPreset('costume')}
+						>
+							🎃 COSTUME PARTY
+						</button>
+						<button
+							class="btn btn-sm btn-ghost"
+							onmouseenter={playHoverSound}
+							onclick={() => applyPreset('gamenight')}
+						>
+							🎲 GAME NIGHT
+						</button>
+					</div>
+					<div class="space-v"></div>
+				{/if}
+
 				<div class="form-group">
 					<label for="pTitle" class="panel-tag">Poll Title *</label>
 					<input
@@ -619,7 +764,7 @@
 
 				<div class="cat-builder-head">
 					<div class="panel-tag">CATEGORIES & CANDIDATES ({categories.length})</div>
-					<button class="btn" onclick={addCategory}>+ ADD CATEGORY</button>
+					<button class="btn btn-sm" onclick={addCategory} onmouseenter={playHoverSound}>+ ADD CATEGORY</button>
 				</div>
 
 				{#each categories as cat, cIdx}
@@ -632,7 +777,13 @@
 								bind:value={cat.title}
 							/>
 							{#if categories.length > 1}
-								<button class="btn btn-danger" onclick={() => removeCategory(cIdx)}>✕</button>
+								<button
+									class="btn btn-danger btn-sm"
+									onmouseenter={playHoverSound}
+									onclick={() => removeCategory(cIdx)}
+								>
+									✕
+								</button>
 							{/if}
 						</div>
 
@@ -646,10 +797,9 @@
 							</select>
 						</div>
 
-						<!-- Copy Candidates Toolbar -->
 						{#if categories.length > 1}
 							<div class="copy-toolbar">
-								<span class="panel-tag text-xs">CANDIDATE UTILITIES:</span>
+								<span class="panel-tag">CANDIDATE UTILITIES:</span>
 								<div class="copy-toolbar-actions">
 									<select
 										class="input-field input-field-sm"
@@ -669,7 +819,11 @@
 										{/each}
 									</select>
 
-									<button class="btn btn-sm" onclick={() => copyCandidatesToAllCategories(cIdx)}>
+									<button
+										class="btn btn-sm"
+										onmouseenter={playHoverSound}
+										onclick={() => copyCandidatesToAllCategories(cIdx)}
+									>
 										COPY TO ALL CATEGORIES
 									</button>
 								</div>
@@ -679,7 +833,7 @@
 						<div class="builder-opts-box">
 							<div class="opt-head">
 								<label for="cat-{cIdx}-options" class="panel-tag">Candidates ({cat.options.length})</label>
-								<button class="btn btn-sm" onclick={() => addOption(cIdx)}>+ CANDIDATE</button>
+								<button class="btn btn-sm" onclick={() => addOption(cIdx)} onmouseenter={playHoverSound}>+ CANDIDATE</button>
 							</div>
 
 							{#each cat.options as opt, oIdx}
@@ -697,7 +851,13 @@
 										bind:value={opt.candidateKey}
 									/>
 									{#if cat.options.length > 1}
-										<button class="btn btn-danger" onclick={() => removeOption(cIdx, oIdx)}>✕</button>
+										<button
+											class="btn btn-danger btn-sm"
+											onmouseenter={playHoverSound}
+											onclick={() => removeOption(cIdx, oIdx)}
+										>
+											✕
+										</button>
 									{/if}
 								</div>
 							{/each}
@@ -707,8 +867,8 @@
 			</div>
 
 			<div class="modal-footer">
-				<button class="btn" onclick={() => (showWizardModal = false)}>CANCEL</button>
-				<button class="btn btn-primary" onclick={saveWizardPoll}>
+				<button class="btn" onclick={() => (showWizardModal = false)} onmouseenter={playHoverSound}>CANCEL</button>
+				<button class="btn btn-primary" onclick={saveWizardPoll} onmouseenter={playHoverSound}>
 					{isEditingPoll ? 'SAVE CHANGES' : 'CREATE POLL'}
 				</button>
 			</div>
@@ -718,7 +878,7 @@
 
 <style>
 	.admin-space-layout {
-		max-width: 900px;
+		max-width: 960px;
 		margin: 0 auto;
 		display: flex;
 		flex-direction: column;
@@ -765,6 +925,7 @@
 		font-size: 0.8rem;
 		font-weight: 700;
 		cursor: pointer;
+		transition: all 0.15s ease;
 	}
 
 	.admin-tab-active {
@@ -780,6 +941,12 @@
 		align-items: flex-start;
 	}
 
+	.sub-text {
+		color: var(--text-secondary);
+		font-size: 0.9rem;
+		margin-top: 4px;
+	}
+
 	.status-right {
 		display: flex;
 		align-items: center;
@@ -792,66 +959,30 @@
 		flex-wrap: wrap;
 	}
 
-	.setting-row {
+	.stepper-track {
 		display: flex;
-		gap: 16px;
-		flex-wrap: wrap;
-	}
-
-	.flex-1 { flex: 1; min-width: 180px; }
-	.flex-2 { flex: 2; }
-
-	.ceremony-control-card {
-		border-color: var(--accent-cyan);
-	}
-
-	.reveal-counter {
-		font-family: var(--font-mono);
-		font-size: 1.2rem;
-		font-weight: 700;
-		color: var(--accent-white);
-	}
-
-	.cat-tab-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.cat-list {
-		display: flex;
-		flex-direction: column;
-		gap: 12px;
-	}
-
-	.cat-item-box {
-		padding: 16px;
-		background: var(--bg-panel-elevated);
-		border: var(--border-subtle);
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-	}
-
-	.cat-item-top {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.cand-pills-row {
-		display: flex;
-		flex-wrap: wrap;
 		gap: 8px;
+		overflow-x: auto;
+		padding-bottom: 8px;
 	}
 
-	.cand-pill {
-		padding: 4px 10px;
-		background: var(--bg-space);
-		border: 1px solid var(--text-dim);
-		font-family: var(--font-mono);
-		font-size: 0.8rem;
+	.step-pill {
+		padding: 8px 14px;
+		background: var(--bg-panel-elevated);
+		border: 1px solid var(--border-subtle);
 		color: var(--text-secondary);
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		font-weight: 700;
+		cursor: pointer;
+		white-space: nowrap;
+		transition: all 0.15s ease;
+	}
+
+	.step-pill-active {
+		border-color: var(--accent-cyan);
+		color: var(--accent-cyan);
+		box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
 	}
 
 	.voter-grid {
@@ -863,48 +994,75 @@
 	.voter-chip {
 		padding: 8px 16px;
 		background: var(--bg-panel-elevated);
-		border: var(--border-subtle);
+		border: 1px solid var(--border-subtle);
 		font-family: var(--font-mono);
-		font-weight: 700;
+		font-size: 0.85rem;
+	}
+
+	.setting-row {
+		display: flex;
+		gap: 16px;
+		flex-wrap: wrap;
+	}
+
+	.cat-tab-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.cat-list {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+	}
+
+	.cat-item-box {
+		padding: 16px 20px;
+		background: var(--bg-panel-elevated);
+		border: 1px solid var(--border-subtle);
+	}
+
+	.cat-item-top {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 10px;
+	}
+
+	.cand-pills-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	.cand-pill {
+		padding: 4px 10px;
+		background: var(--bg-space);
+		border: 1px solid var(--border-subtle);
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		color: var(--text-secondary);
 	}
 
 	.danger-row {
 		display: flex;
 		justify-content: flex-end;
+		margin-top: 20px;
 	}
 
-	.modal-overlay {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.9);
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		padding: 20px;
-		z-index: 200;
-	}
-
-	.modal-card {
-		width: 100%;
-		max-width: 750px;
-		max-height: 90vh;
-		overflow-y: auto;
-		display: flex;
-		flex-direction: column;
-		gap: 20px;
-	}
-
-	.modal-header, .cat-builder-head, .opt-head {
+	.modal-header {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+		margin-bottom: 24px;
 	}
 
 	.close-btn {
 		background: none;
 		border: none;
 		color: var(--text-primary);
-		font-size: 1.6rem;
+		font-size: 1.5rem;
 		cursor: pointer;
 	}
 
@@ -914,51 +1072,33 @@
 		gap: 16px;
 	}
 
-	.form-group {
+	.presets-row {
 		display: flex;
-		flex-direction: column;
-	}
-
-	.builder-cat-box {
-		background: var(--bg-panel-elevated);
-		padding: 16px;
-		border: var(--border-subtle);
-		display: flex;
-		flex-direction: column;
-		gap: 12px;
-	}
-
-	.copy-toolbar {
-		background: var(--bg-space);
-		padding: 12px;
-		border: 1px solid var(--border-subtle);
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-	}
-
-	.copy-toolbar-actions {
-		display: flex;
+		align-items: center;
 		gap: 10px;
 		flex-wrap: wrap;
 	}
 
-	.input-field-sm {
-		padding: 8px 12px;
-		font-size: 0.85rem;
-		flex: 1;
+	.form-group {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
 	}
 
-	.btn-sm {
-		padding: 8px 16px;
-		font-size: 0.75rem;
+	.cat-builder-head {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-top: 12px;
 	}
 
-	.btn-cyan {
-		background: var(--accent-cyan);
-		color: #000000;
-		border-color: var(--accent-cyan);
-		box-shadow: 4px 4px 0px #ffffff;
+	.builder-cat-box {
+		padding: 20px;
+		background: var(--bg-panel-elevated);
+		border: 1px solid var(--border-subtle);
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
 	}
 
 	.builder-row {
@@ -966,38 +1106,51 @@
 		gap: 10px;
 	}
 
+	.flex-2 { flex: 2; }
+	.flex-1 { flex: 1; }
+
+	.copy-toolbar {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		background: var(--bg-input);
+		padding: 10px 14px;
+		border: 1px solid var(--border-subtle);
+		flex-wrap: wrap;
+		gap: 10px;
+	}
+
+	.copy-toolbar-actions {
+		display: flex;
+		gap: 10px;
+		align-items: center;
+	}
+
+	.input-field-sm {
+		padding: 6px 12px;
+		font-size: 0.8rem;
+		width: auto;
+	}
+
 	.builder-opts-box {
 		display: flex;
 		flex-direction: column;
 		gap: 10px;
+		margin-top: 6px;
+	}
+
+	.opt-head {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
 	}
 
 	.modal-footer {
 		display: flex;
 		justify-content: flex-end;
-		gap: 12px;
+		gap: 14px;
+		margin-top: 24px;
 	}
 
-	.alert {
-		padding: 14px 20px;
-		font-family: var(--font-mono);
-		font-weight: 700;
-		border: 2px solid #ffffff;
-	}
-
-	.alert-error {
-		background: var(--accent-red);
-		color: #ffffff;
-		border-color: var(--accent-red);
-	}
-
-	.alert-success {
-		background: var(--accent-cyan);
-		color: #000000;
-		border-color: var(--accent-cyan);
-	}
-
-	.text-xs { font-size: 0.7rem; margin-bottom: 0; }
-	.sub-text { color: var(--text-secondary); font-size: 0.9rem; }
-	.muted-text { color: var(--text-dim); font-size: 0.95rem; }
+	.muted-text { color: var(--text-dim); }
 </style>
