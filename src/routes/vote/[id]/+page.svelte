@@ -60,7 +60,7 @@
 			const options = catItem.options;
 
 			if (cat.votingStrategy === 'ranked-choice') {
-				initialBallots[cat.id] = options.map((o: any) => o.id);
+				initialBallots[cat.id] = [];
 			} else if (cat.votingStrategy === 'plurality') {
 				initialBallots[cat.id] = options.length > 0 ? options[0].id : null;
 			} else if (cat.votingStrategy === 'approval') {
@@ -72,6 +72,22 @@
 			}
 		}
 		ballots = initialBallots;
+	}
+
+	function assignRank(catId: string, optId: string, maxRanks: number = 3) {
+		const currentList: string[] = [...(ballots[catId] || [])];
+		if (currentList.includes(optId)) return;
+		if (currentList.length >= maxRanks) return;
+		currentList.push(optId);
+		ballots[catId] = currentList;
+	}
+
+	function unassignRank(catId: string, optId: string) {
+		const currentList: string[] = [...(ballots[catId] || [])];
+		const idx = currentList.indexOf(optId);
+		if (idx === -1) return;
+		currentList.splice(idx, 1);
+		ballots[catId] = currentList;
 	}
 
 	function moveRank(catId: string, optId: string, direction: 'up' | 'down') {
@@ -248,37 +264,91 @@
 
 					<div class="space-v"></div>
 
-					<!-- Ranked Choice UI -->
+					<!-- Ranked Choice UI: Pick Your Top 3 -->
 					{#if cat.votingStrategy === 'ranked-choice'}
-						<div class="rcv-list">
-							{#each (ballots[cat.id] || []) as optId, rankIdx}
-								{@const opt = options.find((o: any) => o.id === optId)}
-								{#if opt}
-									<div class="rcv-card">
-										<div class="rank-num">#{rankIdx + 1}</div>
-										<div class="rcv-info">
-											<strong>{opt.title}</strong>
-											{#if opt.description}<span class="opt-desc">{opt.description}</span>{/if}
+						{@const rankedList = ballots[cat.id] || []}
+						{@const maxRanks = Math.min(3, options.length)}
+						{@const rankLabels = ['1ST CHOICE 🥇', '2ND CHOICE 🥈', '3RD CHOICE 🥉']}
+
+						<div class="rcv-top3-container">
+							<div class="rcv-slots-section">
+								<div class="rcv-section-title">[ YOUR TOP {maxRanks} PICKS ]</div>
+								<div class="slots-grid">
+									{#each Array(maxRanks) as _, slotIdx}
+										{@const optId = rankedList[slotIdx]}
+										{@const opt = optId ? options.find((o: any) => o.id === optId) : null}
+										<div class="rank-slot-card {opt ? 'slot-filled' : 'slot-empty'}">
+											<div class="slot-badge">{rankLabels[slotIdx] || `#${slotIdx + 1}`}</div>
+											{#if opt}
+												<div class="slot-content">
+													<strong>{opt.title}</strong>
+													{#if opt.description}<span class="opt-desc">{opt.description}</span>{/if}
+												</div>
+												<div class="slot-actions">
+													{#if slotIdx > 0}
+														<button
+															class="btn-icon"
+															title="Move up"
+															onclick={() => moveRank(cat.id, opt.id, 'up')}
+														>▲</button>
+													{/if}
+													{#if slotIdx < rankedList.length - 1}
+														<button
+															class="btn-icon"
+															title="Move down"
+															onclick={() => moveRank(cat.id, opt.id, 'down')}
+														>▼</button>
+													{/if}
+													<button
+														class="btn-icon btn-remove"
+														title="Remove choice"
+														onclick={() => unassignRank(cat.id, opt.id)}
+													>✕</button>
+												</div>
+											{:else}
+												<div class="slot-placeholder">
+													<span>Tap a candidate below to select</span>
+												</div>
+											{/if}
 										</div>
-										<div class="rcv-buttons">
-											<button
-												class="btn-order"
-												disabled={rankIdx === 0}
-												onclick={() => moveRank(cat.id, opt.id, 'up')}
-											>
-												UP
-											</button>
-											<button
-												class="btn-order"
-												disabled={rankIdx === (ballots[cat.id] || []).length - 1}
-												onclick={() => moveRank(cat.id, opt.id, 'down')}
-											>
-												DOWN
-											</button>
-										</div>
-									</div>
-								{/if}
-							{/each}
+									{/each}
+								</div>
+							</div>
+
+							<div class="rcv-pool-section">
+								<div class="rcv-section-title">[ CANDIDATE SELECTION POOL ]</div>
+								<div class="options-column">
+									{#each options as opt}
+										{@const currentRankIdx = rankedList.indexOf(opt.id)}
+										{@const isSelected = currentRankIdx !== -1}
+										{@const isPoolDisabled = !isSelected && rankedList.length >= maxRanks}
+
+										<button
+											class="opt-btn-card {isSelected ? 'opt-ranked-active' : ''} {isPoolDisabled ? 'opt-pool-full' : ''}"
+											disabled={isPoolDisabled}
+											onclick={() => {
+												if (isSelected) {
+													unassignRank(cat.id, opt.id);
+												} else {
+													assignRank(cat.id, opt.id, maxRanks);
+												}
+											}}
+										>
+											<div class="rank-indicator">
+												{#if isSelected}
+													<span class="rank-num-badge">#{currentRankIdx + 1}</span>
+												{:else}
+													<span class="rank-add-badge">+</span>
+												{/if}
+											</div>
+											<div class="opt-content">
+												<strong>{opt.title}</strong>
+												{#if opt.description}<span class="opt-desc">{opt.description}</span>{/if}
+											</div>
+										</button>
+									{/each}
+								</div>
+							</div>
 						</div>
 					{/if}
 
@@ -452,63 +522,157 @@
 		color: var(--text-secondary);
 	}
 
-	.rcv-list, .options-column, .score-column {
+	.rcv-top3-container {
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: 20px;
 	}
 
-	.rcv-card {
+	.rcv-section-title {
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: var(--accent-cyan);
+		letter-spacing: 0.1em;
+		margin-bottom: 10px;
+	}
+
+	.slots-grid {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.rank-slot-card {
 		display: flex;
 		align-items: center;
-		gap: 14px;
-		padding: 16px;
+		gap: 12px;
+		padding: 12px 16px;
 		background: var(--bg-panel-elevated);
-		border: var(--border-subtle);
+		transition: all 0.2s ease;
 	}
 
-	.rank-num {
-		width: 36px;
-		height: 36px;
+	.slot-filled {
+		border: 2px solid var(--accent-cyan);
+		box-shadow: 3px 3px 0px var(--accent-cyan);
+	}
+
+	.slot-empty {
+		border: 2px dashed rgba(255, 255, 255, 0.2);
+		opacity: 0.7;
+	}
+
+	.slot-badge {
+		font-family: var(--font-mono);
+		font-weight: 800;
+		font-size: 0.75rem;
+		padding: 6px 10px;
+		background: var(--bg-space);
+		border: 1px solid var(--accent-cyan);
+		color: var(--accent-cyan);
+		white-space: nowrap;
+	}
+
+	.slot-filled .slot-badge {
 		background: var(--accent-cyan);
 		color: #000000;
-		font-weight: 800;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-family: var(--font-mono);
 	}
 
-	.rcv-info {
+	.slot-content {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
 	}
 
-	.opt-desc {
-		font-size: 0.85rem;
+	.slot-placeholder {
+		flex: 1;
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
 		color: var(--text-dim);
+		font-style: italic;
 	}
 
-	.rcv-buttons {
+	.slot-actions {
 		display: flex;
 		gap: 6px;
 	}
 
-	.btn-order {
-		padding: 8px 12px;
+	.btn-icon {
+		padding: 4px 10px;
 		background: var(--bg-space);
 		border: 1px solid var(--text-secondary);
 		color: var(--text-primary);
 		font-family: var(--font-mono);
-		font-size: 0.75rem;
-		font-weight: 700;
+		font-size: 0.85rem;
 		cursor: pointer;
+		transition: background 0.15s ease;
 	}
 
-	.btn-order:disabled {
-		opacity: 0.2;
+	.btn-icon:hover {
+		background: var(--accent-cyan);
+		color: #000000;
+	}
+
+	.btn-remove {
+		border-color: var(--accent-red);
+		color: var(--accent-red);
+	}
+
+	.btn-remove:hover {
+		background: var(--accent-red);
+		color: #ffffff;
+	}
+
+	.rank-indicator {
+		margin-right: 12px;
+		display: flex;
+		align-items: center;
+	}
+
+	.rank-num-badge {
+		width: 32px;
+		height: 32px;
+		background: var(--accent-cyan);
+		color: #000000;
+		font-family: var(--font-mono);
+		font-weight: 800;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.rank-add-badge {
+		width: 32px;
+		height: 32px;
+		border: 1px dashed var(--text-secondary);
+		color: var(--text-secondary);
+		font-family: var(--font-mono);
+		font-weight: 700;
+		font-size: 1.2rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.opt-ranked-active {
+		border: 2px solid var(--accent-cyan);
+		background: rgba(0, 240, 255, 0.08);
+	}
+
+	.opt-pool-full {
+		opacity: 0.4;
 		cursor: not-allowed;
+	}
+
+	.options-column, .score-column {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.opt-desc {
+		font-size: 0.85rem;
+		color: var(--text-dim);
 	}
 
 	.opt-btn-card {
