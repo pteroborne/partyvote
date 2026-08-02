@@ -82,6 +82,23 @@
 		window.open(`/api/polls/${selectedPoll.poll.id}/export`, '_blank');
 	}
 
+	async function seedPollVotes(pollId: string) {
+		playTapSound();
+		try {
+			const res = await fetch(`/api/polls/${pollId}/seed`, { method: 'POST' });
+			const data = await res.json();
+			if (res.ok) {
+				successMsg = `Seeded ${data.voterCount} test voters & ballots for this poll!`;
+				await loadPollDetails(pollId);
+				setTimeout(() => (successMsg = ''), 4000);
+			} else {
+				errorMsg = data.error || 'Failed to seed poll votes.';
+			}
+		} catch (e: any) {
+			errorMsg = e.message || 'Seed operation failed.';
+		}
+	}
+
 	async function importPollBackup(e: Event) {
 		const fileInput = e.target as HTMLInputElement;
 		const file = fileInput.files?.[0];
@@ -287,7 +304,7 @@
 			if (res.ok) {
 				successMsg = `Status changed to ${newStatus.toUpperCase()}`;
 				if (newStatus === 'closed') {
-					await setRevealStep(0);
+					await setRevealState(0, 0);
 				}
 				await loadPollDetails(selectedPoll.poll.id);
 				await loadPolls();
@@ -317,19 +334,111 @@
 		}
 	}
 
-	async function setRevealStep(step: number) {
+	let masterAutoInterval: any = null;
+
+	$effect(() => {
+		if (selectedPoll?.poll?.isAutoPlaying && selectedPoll?.poll?.status === 'closed') {
+			if (!masterAutoInterval) {
+				masterAutoInterval = setInterval(() => {
+					navigateSubStep(1);
+				}, 3200);
+			}
+		} else {
+			if (masterAutoInterval) {
+				clearInterval(masterAutoInterval);
+				masterAutoInterval = null;
+			}
+		}
+	});
+
+	async function setRevealState(step: number, subStep: number = 0) {
 		if (!selectedPoll) return;
 		playStepSound();
 		try {
 			await fetch(`/api/polls/${selectedPoll.poll.id}/reveal`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ step })
+				body: JSON.stringify({ step, subStep })
 			});
 			await loadPollDetails(selectedPoll.poll.id);
 		} catch (e: any) {
 			errorMsg = e.message;
 		}
+	}
+
+	async function toggleMasterAutoPlay(isAutoPlaying: boolean) {
+		if (!selectedPoll) return;
+		playTapSound();
+		try {
+			await fetch(`/api/polls/${selectedPoll.poll.id}/reveal`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ isAutoPlaying })
+			});
+			await loadPollDetails(selectedPoll.poll.id);
+		} catch (e: any) {
+			errorMsg = e.message;
+		}
+	}
+
+	async function navigateSubStep(dir: number) {
+		if (!selectedPoll) return;
+
+		const categories = selectedPoll.categories || [];
+		let currentStep = selectedPoll.poll.currentRevealStep || 0;
+		let currentSubStep = selectedPoll.poll.currentRevealSubStep ?? 0;
+
+		if (currentStep === 0 && dir > 0) {
+			currentStep = 1;
+			currentSubStep = 0;
+		} else if (dir > 0) {
+			const activeCat = categories[currentStep - 1];
+			const rcvRounds = activeCat?.result?.rcvRounds || [];
+
+			if (currentSubStep === 0) {
+				if (activeCat?.category?.votingStrategy === 'ranked-choice' && rcvRounds.length > 0) {
+					currentSubStep = 1;
+				} else {
+					currentSubStep = 99;
+				}
+			} else if (currentSubStep < rcvRounds.length) {
+				currentSubStep++;
+			} else if (currentSubStep !== 99) {
+				currentSubStep = 99;
+			} else {
+				if (currentStep < categories.length) {
+					currentStep++;
+					currentSubStep = 0;
+				} else {
+					// Reached end of all categories! Pause auto-play
+					await toggleMasterAutoPlay(false);
+					return;
+				}
+			}
+		} else if (dir < 0) {
+			const activeCat = categories[currentStep - 1];
+			const rcvRounds = activeCat?.result?.rcvRounds || [];
+
+			if (currentSubStep === 99) {
+				if (activeCat?.category?.votingStrategy === 'ranked-choice' && rcvRounds.length > 0) {
+					currentSubStep = rcvRounds.length;
+				} else {
+					currentSubStep = 0;
+				}
+			} else if (currentSubStep > 1) {
+				currentSubStep--;
+			} else if (currentSubStep === 1) {
+				currentSubStep = 0;
+			} else if (currentStep > 1) {
+				currentStep--;
+				currentSubStep = 99;
+			} else {
+				currentStep = 0;
+				currentSubStep = 0;
+			}
+		}
+
+		await setRevealState(currentStep, currentSubStep);
 	}
 
 	async function deletePoll(id: string) {
@@ -564,56 +673,157 @@
 					>
 						📱 TEST GUEST BALLOT
 					</a>
+					<button
+						class="btn btn-gold flex-1"
+						onclick={() => seedPollVotes(poll.id)}
+						onmouseenter={playHoverSound}
+					>
+						🌱 RE-SEED DEMO VOTES
+					</button>
 				</div>
 			</section>
 
 			{#if isClosed}
+				{@const currentStep = poll.currentRevealStep || 0}
+				{@const currentSubStep = poll.currentRevealSubStep ?? 0}
+				{@const isAutoPlaying = poll.isAutoPlaying ?? false}
+				{@const activeCategory = currentStep > 0 ? selectedPoll.categories[currentStep - 1] : null}
+				{@const rcvRoundsCount = activeCategory?.result?.rcvRounds?.length || 1}
+
 				<section class="empire-panel ceremony-control-card empire-panel-cyan">
-					<div class="panel-tag">[ TV PRESENTATION REVEAL CONTROLS ]</div>
+					<div class="panel-tag">[ HOST MASTER TV BROADCAST CONTROL CONSOLE ]</div>
 					<div class="space-v"></div>
 
-					<div class="reveal-stepper-visual">
-						<div class="stepper-track">
-							<button
-								class="step-pill {currentStep === 0 ? 'step-pill-active' : ''}"
-								onmouseenter={playHoverSound}
-								onclick={() => setRevealStep(0)}
-							>
-								STANDBY
-							</button>
-							{#each selectedPoll.categories as catItem, cIdx}
-								{@const stepNum = cIdx + 1}
-								<button
-									class="step-pill {currentStep === stepNum ? 'step-pill-active' : ''}"
-									onmouseenter={playHoverSound}
-									onclick={() => setRevealStep(stepNum)}
-								>
-									#{stepNum} {catItem.category.title}
-								</button>
-							{/each}
+					<!-- Live TV Teleprompter Monitor -->
+					<div class="teleprompter-monitor">
+						<div class="teleprompter-header">
+							<span class="pulse-dot"></span>
+							<span class="lbl">TV BROADCAST STATUS MONITOR:</span>
+						</div>
+						<div class="teleprompter-content">
+							{#if currentStep === 0}
+								<span class="status-text standby">STANDBY MODE (Waiting to start category reveals)</span>
+							{:else if activeCategory}
+								<div class="status-live-info">
+									<span class="cat-label">CATEGORY #{currentStep}: <strong>{activeCategory.category.title}</strong></span>
+									<span class="substep-label">
+										{#if currentSubStep === 0}
+											📺 STAGE 1: Category Title Intro
+										{:else if currentSubStep === 99}
+											🏆 STAGE 3: Official Winner Trophy Card ({activeCategory.result.winnerOptionTitle})
+										{:else}
+											⚡ STAGE 2: RCV Round {currentSubStep} of {rcvRoundsCount}
+										{/if}
+									</span>
+								</div>
+							{/if}
 						</div>
 					</div>
 
 					<div class="space-v"></div>
 
-					<div class="action-row">
+					<!-- Master Auto-Play Toggle & Step Stepper -->
+					<div class="master-control-row">
 						<button
-							class="btn"
-							disabled={currentStep <= 0}
+							class="btn {isAutoPlaying ? 'btn-danger' : 'btn-gold'} btn-lg flex-2"
+							onclick={() => toggleMasterAutoPlay(!isAutoPlaying)}
 							onmouseenter={playHoverSound}
-							onclick={() => setRevealStep(currentStep - 1)}
 						>
-							← PREVIOUS WINNER
+							{isAutoPlaying ? '⏸ PAUSE CEREMONY AUTO-PLAY' : '▶ START AUTOMATED CEREMONY'}
+						</button>
+
+						<button
+							class="btn flex-1"
+							disabled={currentStep <= 1 && currentSubStep <= 0}
+							onclick={() => navigateSubStep(-1)}
+							onmouseenter={playHoverSound}
+						>
+							⏮ PREV SUB-STEP
+						</button>
+
+						<button
+							class="btn btn-cyan flex-1"
+							onclick={() => navigateSubStep(1)}
+							onmouseenter={playHoverSound}
+						>
+							NEXT SUB-STEP ⏩
 						</button>
 
 						<button
 							class="btn btn-gold flex-1"
-							disabled={currentStep >= totalCats}
+							disabled={currentStep <= 0}
+							onclick={() => setRevealState(currentStep, 99)}
 							onmouseenter={playHoverSound}
-							onclick={() => setRevealStep(currentStep + 1)}
 						>
-							🏆 NEXT WINNER ({currentStep < totalCats ? selectedPoll.categories[currentStep]?.category?.title : 'CEREMONY COMPLETE'})
+							🏆 WINNER FINALE
 						</button>
+					</div>
+
+					<div class="space-v"></div>
+
+					<!-- Direct Stage Stepper per Category -->
+					<div class="category-stepper-grid">
+						<div class="panel-tag">[ DIRECT CATEGORY & SUB-STEP STAGE JUMP ]</div>
+						<div class="space-v-sm"></div>
+
+						<div class="cat-stepper-list">
+							<button
+								class="step-pill {currentStep === 0 ? 'step-pill-active' : ''}"
+								onclick={() => setRevealState(0, 0)}
+								onmouseenter={playHoverSound}
+							>
+								STANDBY
+							</button>
+
+							{#each selectedPoll.categories as catItem, cIdx}
+								{@const stepNum = cIdx + 1}
+								{@const isThisCatActive = currentStep === stepNum}
+								{@const catRounds = catItem.result?.rcvRounds || []}
+
+								<div class="cat-control-group {isThisCatActive ? 'cat-group-active' : ''}">
+									<button
+										class="step-pill {isThisCatActive ? 'step-pill-active' : ''}"
+										onclick={() => setRevealState(stepNum, 0)}
+										onmouseenter={playHoverSound}
+									>
+										#{stepNum} {catItem.category.title}
+									</button>
+
+									{#if isThisCatActive}
+										<div class="substep-pills">
+											<button
+												class="btn btn-xs {currentSubStep === 0 ? 'btn-cyan' : 'btn-ghost'}"
+												onclick={() => setRevealState(stepNum, 0)}
+												onmouseenter={playHoverSound}
+											>
+												Title
+											</button>
+
+											{#if catItem.category.votingStrategy === 'ranked-choice' && catRounds.length > 0}
+												{#each catRounds as r, rIdx}
+													{@const rSubStep = rIdx + 1}
+													<button
+														class="btn btn-xs {currentSubStep === rSubStep ? 'btn-cyan' : 'btn-ghost'}"
+														onclick={() => setRevealState(stepNum, rSubStep)}
+														onmouseenter={playHoverSound}
+													>
+														R{r.roundNumber} {r.eliminatedOptionId ? '⚡' : ''}
+													</button>
+												{/each}
+											{/if}
+
+											<button
+												class="btn btn-xs {currentSubStep === 99 ? 'btn-gold' : 'btn-ghost'}"
+												onclick={() => setRevealState(stepNum, 99)}
+												onmouseenter={playHoverSound}
+											>
+												🏆 Winner
+											</button>
+										</div>
+									{/if}
+								</div>
+							{/each}
+						</div>
 					</div>
 				</section>
 			{/if}
@@ -675,6 +885,8 @@
 
 				<div class="cat-list">
 					{#each selectedPoll.categories as catItem}
+						{@const res = catItem.result}
+						{@const optMap = new Map((catItem.options || []).map((o: any) => [o.id, o.title]))}
 						<div class="cat-item-box">
 							<div class="cat-item-top">
 								<strong>{catItem.category.title}</strong>
@@ -685,6 +897,34 @@
 									<span class="cand-pill">{opt.title}</span>
 								{/each}
 							</div>
+
+							{#if res && res.rcvRounds && res.rcvRounds.length > 0}
+								<div class="admin-rcv-preview">
+									<div class="admin-rcv-tag">⚡ HOST RCV ROLL-OFF BREAKDOWN:</div>
+									<div class="admin-rcv-rounds-list">
+										{#each res.rcvRounds as r}
+											{@const adminTransfers = (r.transfers ? Object.entries(r.transfers) : []) as [string, number][]}
+											<div class="admin-rcv-round-row">
+												<span class="r-num">Round {r.roundNumber}:</span>
+												{#if r.eliminatedOptionId}
+													<span class="r-elim">Eliminated {r.eliminatedOptionTitle || optMap.get(r.eliminatedOptionId)}</span>
+													{#if adminTransfers.length > 0}
+														<span class="r-transfers">
+															{#each adminTransfers as [targetId, count]}
+																<span class="r-chip">
+																	{targetId === 'exhausted' ? `💨 ${count} exhausted` : `+${count} ➜ ${optMap.get(targetId) || targetId}`}
+																</span>
+															{/each}
+														</span>
+													{/if}
+												{:else}
+													<span class="r-win">🏆 Winner: {res.winnerOptionTitle}</span>
+												{/if}
+											</div>
+										{/each}
+									</div>
+								</div>
+							{/if}
 						</div>
 					{/each}
 				</div>
@@ -791,6 +1031,7 @@
 							<label for="cat-strat-{cIdx}" class="panel-tag">Voting Strategy</label>
 							<select id="cat-strat-{cIdx}" class="input-field" bind:value={cat.votingStrategy}>
 								<option value="ranked-choice">Ranked Choice (Instant Runoff)</option>
+								<option value="borda-count">Borda Count (Rank Points)</option>
 								<option value="plurality">Plurality (Single Favorite)</option>
 								<option value="approval">Approval (Select Multiple)</option>
 								<option value="score">Star Rating (1-5 Stars)</option>
@@ -1153,4 +1394,154 @@
 	}
 
 	.muted-text { color: var(--text-dim); }
+
+	/* ADMIN RCV ROLL OFF PREVIEW */
+	.admin-rcv-preview {
+		margin-top: 12px;
+		background: var(--bg-space);
+		border: 1px solid var(--accent-cyan);
+		padding: 12px 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		font-family: var(--font-mono);
+		font-size: 0.85rem;
+	}
+
+	.admin-rcv-tag {
+		color: var(--accent-cyan);
+		font-weight: 800;
+	}
+
+	.admin-rcv-rounds-list {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	.admin-rcv-round-row {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	.r-num {
+		color: var(--text-secondary);
+		font-weight: 700;
+	}
+
+	.r-elim {
+		color: #ff6666;
+		font-weight: 700;
+	}
+
+	.r-win {
+		color: var(--accent-gold);
+		font-weight: 800;
+	}
+
+	.r-transfers {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+
+	.r-chip {
+		background: rgba(0, 240, 255, 0.1);
+		border: 1px solid rgba(0, 240, 255, 0.25);
+		padding: 2px 6px;
+		border-radius: 3px;
+		font-size: 0.8rem;
+		color: var(--text-primary);
+	}
+
+	/* TELEPROMPTER MONITOR & MASTER CONTROLS */
+	.teleprompter-monitor {
+		background: var(--bg-space);
+		border: 2px solid var(--accent-cyan);
+		box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.15);
+		padding: 16px 20px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.teleprompter-header {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		font-weight: 800;
+		color: var(--accent-cyan);
+	}
+
+	.status-live-info {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		font-family: var(--font-mono);
+	}
+
+	.cat-label {
+		font-size: 1.1rem;
+		color: #ffffff;
+	}
+
+	.substep-label {
+		font-size: 1rem;
+		color: var(--accent-gold);
+		font-weight: 700;
+	}
+
+	.status-text.standby {
+		font-family: var(--font-mono);
+		color: var(--text-secondary);
+		font-weight: 700;
+	}
+
+	.master-control-row {
+		display: flex;
+		gap: 12px;
+		flex-wrap: wrap;
+	}
+
+	.flex-2 { flex: 2; }
+	.flex-1 { flex: 1; }
+
+	.category-stepper-grid {
+		margin-top: 12px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.cat-stepper-list {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.cat-control-group {
+		background: var(--bg-space);
+		border: 1px solid var(--border-subtle);
+		padding: 10px 14px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		flex-wrap: wrap;
+	}
+
+	.cat-group-active {
+		border-color: var(--accent-cyan);
+		background: rgba(0, 240, 255, 0.05);
+	}
+
+	.substep-pills {
+		display: flex;
+		gap: 6px;
+		flex-wrap: wrap;
+	}
 </style>

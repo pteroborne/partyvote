@@ -11,6 +11,8 @@ export interface DbPoll {
 	adminPin: string;
 	showLiveTotals: boolean;
 	currentRevealStep: number;
+	currentRevealSubStep: number;
+	isAutoPlaying: boolean;
 	createdAt: string;
 }
 
@@ -73,6 +75,8 @@ class MemoryStore {
 			adminPin: '1234',
 			showLiveTotals: false,
 			currentRevealStep: 0,
+			currentRevealSubStep: 0,
+			isAutoPlaying: false,
 			createdAt: new Date().toISOString()
 		};
 		this.polls.set(p.id, p);

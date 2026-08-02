@@ -42,20 +42,41 @@ function persistStoreToDisk() {
 		console.error('[PartyVote Persistence] Failed to write store.json to disk:', e);
 	}
 }
+function reloadStoreFromDisk() {
+	try {
+		if (fs.existsSync(BACKUP_FILE)) {
+			const raw = fs.readFileSync(BACKUP_FILE, 'utf-8');
+			const json = JSON.parse(raw);
+			if (json.polls) memoryStore.polls = new Map(json.polls);
+			if (json.categories) memoryStore.categories = new Map(json.categories);
+			if (json.options) memoryStore.options = new Map(json.options);
+			if (json.voters) memoryStore.voters = new Map(json.voters);
+			if (json.votes) memoryStore.votes = new Map(json.votes);
+		}
+	} catch (e) {
+		console.warn('[PartyVote Persistence] Failed to reload store.json:', e);
+	}
+}
 
 export const repo = {
 	async getPoll(id: string): Promise<DbPoll | null> {
+		if (!memoryStore.polls.has(id)) {
+			reloadStoreFromDisk();
+		}
 		return memoryStore.polls.get(id) || null;
 	},
 
 	async getAllPolls(): Promise<DbPoll[]> {
+		reloadStoreFromDisk();
 		return Array.from(memoryStore.polls.values()).sort(
 			(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
 		);
 	},
 
-	async createPoll(poll: Omit<DbPoll, 'createdAt'>): Promise<DbPoll> {
+	async createPoll(poll: Omit<DbPoll, 'createdAt' | 'currentRevealSubStep' | 'isAutoPlaying'> & Partial<DbPoll>): Promise<DbPoll> {
 		const newPoll: DbPoll = {
+			currentRevealSubStep: 0,
+			isAutoPlaying: false,
 			...poll,
 			createdAt: new Date().toISOString()
 		};

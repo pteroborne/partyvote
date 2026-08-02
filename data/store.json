@@ -1,0 +1,2001 @@
+{
+  "polls": [
+    [
+      "demo-party-2026",
+      {
+        "id": "demo-party-2026",
+        "title": "Party Awards 2026",
+        "description": "Welcome to tonight’s party! Scan the QR code to submit your votes.",
+        "status": "closed",
+        "winnerAllocationStrategy": "no-duplicate-winners",
+        "adminPin": "1234",
+        "showLiveTotals": false,
+        "currentRevealStep": 1,
+        "createdAt": "2026-07-30T02:00:52.116Z"
+      }
+    ],
+    [
+      "conspiracy-theory-party-2026",
+      {
+        "id": "conspiracy-theory-party-2026",
+        "title": "Conspiracy Theory Party",
+        "description": "Vote for your favorite conspiracy theory presentations from Friday's party!",
+        "status": "active",
+        "winnerAllocationStrategy": "no-duplicate-winners",
+        "adminPin": "1234",
+        "showLiveTotals": false,
+        "currentRevealStep": 3,
+        "createdAt": "2026-07-31T13:56:51.000Z",
+        "isAutoPlaying": false,
+        "currentRevealSubStep": 0
+      }
+    ],
+    [
+      "conspiracy-theory-test-2026",
+      {
+        "id": "conspiracy-theory-test-2026",
+        "title": "Conspiracy Theory Party (Live Test)",
+        "description": "Vote for your favorite conspiracy theory presentations! (Active Poll for live testing)",
+        "status": "closed",
+        "winnerAllocationStrategy": "no-duplicate-winners",
+        "adminPin": "1234",
+        "showLiveTotals": false,
+        "currentRevealStep": 2,
+        "currentRevealSubStep": 99,
+        "isAutoPlaying": false,
+        "createdAt": "2026-08-01T20:15:52.751Z"
+      }
+    ]
+  ],
+  "categories": [
+    [
+      "cat-best-costume",
+      {
+        "id": "cat-best-costume",
+        "pollId": "demo-party-2026",
+        "title": "Best Costume Award",
+        "description": "Rank your top costume candidates from 1st to 3rd choice.",
+        "votingStrategy": "ranked-choice",
+        "priorityOrder": 1
+      }
+    ],
+    [
+      "cat-best-cocktail",
+      {
+        "id": "cat-best-cocktail",
+        "pollId": "demo-party-2026",
+        "title": "Best Signature Cocktail",
+        "description": "Rate each drink from 1 to 5 stars.",
+        "votingStrategy": "score",
+        "priorityOrder": 2
+      }
+    ],
+    [
+      "cat-karaoke",
+      {
+        "id": "cat-karaoke",
+        "pollId": "demo-party-2026",
+        "title": "Karaoke Champion",
+        "description": "Approve all singers who rocked the stage tonight.",
+        "votingStrategy": "approval",
+        "priorityOrder": 3
+      }
+    ],
+    [
+      "cat-most-convincing",
+      {
+        "id": "cat-most-convincing",
+        "pollId": "conspiracy-theory-party-2026",
+        "title": "Most Convincing",
+        "description": "Rank your top choice candidates for the most convincing conspiracy theory.",
+        "votingStrategy": "ranked-choice",
+        "priorityOrder": 1
+      }
+    ],
+    [
+      "cat-most-unhinged",
+      {
+        "id": "cat-most-unhinged",
+        "pollId": "conspiracy-theory-party-2026",
+        "title": "Most Unhinged",
+        "description": "Rank your top choice candidates for the most wild and unhinged conspiracy theory.",
+        "votingStrategy": "ranked-choice",
+        "priorityOrder": 2
+      }
+    ],
+    [
+      "cat-fbi-watching",
+      {
+        "id": "cat-fbi-watching",
+        "pollId": "conspiracy-theory-party-2026",
+        "title": "The FBI Is Watching You",
+        "description": "Rank your top choice candidates for the theory most likely to get you placed on a government watch list.",
+        "votingStrategy": "ranked-choice",
+        "priorityOrder": 3
+      }
+    ],
+    [
+      "cat-convincing-conspiracy-theory-test-2026",
+      {
+        "id": "cat-convincing-conspiracy-theory-test-2026",
+        "pollId": "conspiracy-theory-test-2026",
+        "title": "Most Convincing",
+        "description": "Rank your top choice candidates for the most convincing conspiracy theory.",
+        "votingStrategy": "borda-count",
+        "priorityOrder": 1
+      }
+    ],
+    [
+      "cat-unhinged-conspiracy-theory-test-2026",
+      {
+        "id": "cat-unhinged-conspiracy-theory-test-2026",
+        "pollId": "conspiracy-theory-test-2026",
+        "title": "Most Unhinged",
+        "description": "Rank your candidates in order of preference. Uses Borda Count (1st = 5 pts, 2nd = 4 pts, etc.).",
+        "votingStrategy": "borda-count",
+        "priorityOrder": 2
+      }
+    ],
+    [
+      "cat-fbi-conspiracy-theory-test-2026",
+      {
+        "id": "cat-fbi-conspiracy-theory-test-2026",
+        "pollId": "conspiracy-theory-test-2026",
+        "title": "The FBI Is Watching You",
+        "description": "Approve all theories that are guaranteed to get you placed on a government watch list.",
+        "votingStrategy": "borda-count",
+        "priorityOrder": 3
+      }
+    ]
+  ],
+  "options": [
+    [
+      "c1-opt1",
+      {
+        "id": "c1-opt1",
+        "categoryId": "cat-most-convincing",
+        "candidateKey": "avril-lavigne",
+        "title": "Avril Lavigne: No More?",
+        "description": "Avril Lavigne died in 2003 and was replaced by body double Melissa Vandella",
+        "displayOrder": 1
+      }
+    ],
+    [
+      "c1-opt2",
+      {
+        "id": "c1-opt2",
+        "categoryId": "cat-most-convincing",
+        "candidateKey": "ikea-threat",
+        "title": "IKEA: A Threat Assessment (The Hand That Feeds Us)",
+        "description": "IKEA's flat-pack emergency shelters and modular psychological conditioning",
+        "displayOrder": 2
+      }
+    ],
+    [
+      "c1-opt3",
+      {
+        "id": "c1-opt3",
+        "categoryId": "cat-most-convincing",
+        "candidateKey": "gangster-rap",
+        "title": "Gangster Rap: The Industry Plant",
+        "description": "Secret 1980s meeting to push gangster rap to fill private prisons",
+        "displayOrder": 3
+      }
+    ],
+    [
+      "c1-opt4",
+      {
+        "id": "c1-opt4",
+        "categoryId": "cat-most-convincing",
+        "candidateKey": "tech-takeover",
+        "title": "Frame Shift: How Technology Is Sapping the Life Out of Your Life",
+        "description": "How modern technology and constant connectivity are controlling human lives",
+        "displayOrder": 4
+      }
+    ],
+    [
+      "c2-opt1",
+      {
+        "id": "c2-opt1",
+        "categoryId": "cat-most-unhinged",
+        "candidateKey": "avril-lavigne",
+        "title": "Avril Lavigne: No More?",
+        "description": "Avril Lavigne died in 2003 and was replaced by body double Melissa Vandella",
+        "displayOrder": 1
+      }
+    ],
+    [
+      "c2-opt2",
+      {
+        "id": "c2-opt2",
+        "categoryId": "cat-most-unhinged",
+        "candidateKey": "ikea-threat",
+        "title": "IKEA: A Threat Assessment (The Hand That Feeds Us)",
+        "description": "IKEA's flat-pack emergency shelters and modular psychological conditioning",
+        "displayOrder": 2
+      }
+    ],
+    [
+      "c2-opt3",
+      {
+        "id": "c2-opt3",
+        "categoryId": "cat-most-unhinged",
+        "candidateKey": "gangster-rap",
+        "title": "Gangster Rap: The Industry Plant",
+        "description": "Secret 1980s meeting to push gangster rap to fill private prisons",
+        "displayOrder": 3
+      }
+    ],
+    [
+      "c3-opt1",
+      {
+        "id": "c3-opt1",
+        "categoryId": "cat-fbi-watching",
+        "candidateKey": "avril-lavigne",
+        "title": "Avril Lavigne: No More?",
+        "description": "Avril Lavigne died in 2003 and was replaced by body double Melissa Vandella",
+        "displayOrder": 1
+      }
+    ],
+    [
+      "c3-opt2",
+      {
+        "id": "c3-opt2",
+        "categoryId": "cat-fbi-watching",
+        "candidateKey": "ikea-threat",
+        "title": "IKEA: A Threat Assessment (The Hand That Feeds Us)",
+        "description": "IKEA's flat-pack emergency shelters and modular psychological conditioning",
+        "displayOrder": 2
+      }
+    ],
+    [
+      "c3-opt3",
+      {
+        "id": "c3-opt3",
+        "categoryId": "cat-fbi-watching",
+        "candidateKey": "gangster-rap",
+        "title": "Gangster Rap: The Industry Plant",
+        "description": "Secret 1980s meeting to push gangster rap to fill private prisons",
+        "displayOrder": 3
+      }
+    ],
+    [
+      "c1-opt5",
+      {
+        "id": "c1-opt5",
+        "categoryId": "cat-most-convincing",
+        "candidateKey": "intergalactic-tv",
+        "title": "Intergalactic TV: The Fermi Paradox & Interstellar Cable Guide",
+        "description": "Earth is a 24-hour reality TV show protected by the 1973 Zoo Agreement",
+        "displayOrder": 5
+      }
+    ],
+    [
+      "c1-opt6",
+      {
+        "id": "c1-opt6",
+        "categoryId": "cat-most-convincing",
+        "candidateKey": "jerry-azumah",
+        "title": "Jerry Azumah is a Genetically Modified Sasquatch",
+        "description": "Evidence of former NFL player Jerry Azumah undergoing nanobot genetic modification",
+        "displayOrder": 6
+      }
+    ],
+    [
+      "c1-opt7",
+      {
+        "id": "c1-opt7",
+        "categoryId": "cat-most-convincing",
+        "candidateKey": "mass-surveillance",
+        "title": "Mass Government Surveillance (Birds Aren't Real)",
+        "description": "Government surveillance via technology and drone birds tracking citizens",
+        "displayOrder": 7
+      }
+    ],
+    [
+      "c1-opt8",
+      {
+        "id": "c1-opt8",
+        "categoryId": "cat-most-convincing",
+        "candidateKey": "michael-jackson",
+        "title": "Michael Jackson’s Untimely Death: Conspiracy Theory Unraveled",
+        "description": "Sony targeted MJ for his $1.2B music catalog with Dr. Conrad Murray as fall guy",
+        "displayOrder": 8
+      }
+    ],
+    [
+      "c1-opt9",
+      {
+        "id": "c1-opt9",
+        "categoryId": "cat-most-convincing",
+        "candidateKey": "stevie-wonder",
+        "title": "Stevie Wonder: Is He Really Who He Says He Is?",
+        "description": "Suspicious incidents suggesting Stevie Wonder might not actually be blind",
+        "displayOrder": 9
+      }
+    ],
+    [
+      "c1-opt10",
+      {
+        "id": "c1-opt10",
+        "categoryId": "cat-most-convincing",
+        "candidateKey": "covid-nintendo",
+        "title": "COVID Was Manufactured: The Shocking Truth THEY Don't Want You to Hear",
+        "description": "COVID-19 was manufactured by Nintendo, inspired by 1998 Pokérus",
+        "displayOrder": 10
+      }
+    ],
+    [
+      "c1-opt11",
+      {
+        "id": "c1-opt11",
+        "categoryId": "cat-most-convincing",
+        "candidateKey": "history-lemuria",
+        "title": "History Is Not What You Think!",
+        "description": "Lemuria, evil Martians, synthetic Merkabahs, and pyramid planetary alignment",
+        "displayOrder": 11
+      }
+    ],
+    [
+      "c2-opt4",
+      {
+        "id": "c2-opt4",
+        "categoryId": "cat-most-unhinged",
+        "candidateKey": "tech-takeover",
+        "title": "Frame Shift: How Technology Is Sapping the Life Out of Your Life",
+        "description": "How modern technology and constant connectivity are controlling human lives",
+        "displayOrder": 4
+      }
+    ],
+    [
+      "c2-opt5",
+      {
+        "id": "c2-opt5",
+        "categoryId": "cat-most-unhinged",
+        "candidateKey": "intergalactic-tv",
+        "title": "Intergalactic TV: The Fermi Paradox & Interstellar Cable Guide",
+        "description": "Earth is a 24-hour reality TV show protected by the 1973 Zoo Agreement",
+        "displayOrder": 5
+      }
+    ],
+    [
+      "c2-opt6",
+      {
+        "id": "c2-opt6",
+        "categoryId": "cat-most-unhinged",
+        "candidateKey": "jerry-azumah",
+        "title": "Jerry Azumah is a Genetically Modified Sasquatch",
+        "description": "Evidence of former NFL player Jerry Azumah undergoing nanobot genetic modification",
+        "displayOrder": 6
+      }
+    ],
+    [
+      "c2-opt7",
+      {
+        "id": "c2-opt7",
+        "categoryId": "cat-most-unhinged",
+        "candidateKey": "mass-surveillance",
+        "title": "Mass Government Surveillance (Birds Aren't Real)",
+        "description": "Government surveillance via technology and drone birds tracking citizens",
+        "displayOrder": 7
+      }
+    ],
+    [
+      "c2-opt8",
+      {
+        "id": "c2-opt8",
+        "categoryId": "cat-most-unhinged",
+        "candidateKey": "michael-jackson",
+        "title": "Michael Jackson’s Untimely Death: Conspiracy Theory Unraveled",
+        "description": "Sony targeted MJ for his $1.2B music catalog with Dr. Conrad Murray as fall guy",
+        "displayOrder": 8
+      }
+    ],
+    [
+      "c2-opt9",
+      {
+        "id": "c2-opt9",
+        "categoryId": "cat-most-unhinged",
+        "candidateKey": "stevie-wonder",
+        "title": "Stevie Wonder: Is He Really Who He Says He Is?",
+        "description": "Suspicious incidents suggesting Stevie Wonder might not actually be blind",
+        "displayOrder": 9
+      }
+    ],
+    [
+      "c2-opt10",
+      {
+        "id": "c2-opt10",
+        "categoryId": "cat-most-unhinged",
+        "candidateKey": "covid-nintendo",
+        "title": "COVID Was Manufactured: The Shocking Truth THEY Don't Want You to Hear",
+        "description": "COVID-19 was manufactured by Nintendo, inspired by 1998 Pokérus",
+        "displayOrder": 10
+      }
+    ],
+    [
+      "c2-opt11",
+      {
+        "id": "c2-opt11",
+        "categoryId": "cat-most-unhinged",
+        "candidateKey": "history-lemuria",
+        "title": "History Is Not What You Think!",
+        "description": "Lemuria, evil Martians, synthetic Merkabahs, and pyramid planetary alignment",
+        "displayOrder": 11
+      }
+    ],
+    [
+      "c3-opt4",
+      {
+        "id": "c3-opt4",
+        "categoryId": "cat-fbi-watching",
+        "candidateKey": "tech-takeover",
+        "title": "Frame Shift: How Technology Is Sapping the Life Out of Your Life",
+        "description": "How modern technology and constant connectivity are controlling human lives",
+        "displayOrder": 4
+      }
+    ],
+    [
+      "c3-opt5",
+      {
+        "id": "c3-opt5",
+        "categoryId": "cat-fbi-watching",
+        "candidateKey": "intergalactic-tv",
+        "title": "Intergalactic TV: The Fermi Paradox & Interstellar Cable Guide",
+        "description": "Earth is a 24-hour reality TV show protected by the 1973 Zoo Agreement",
+        "displayOrder": 5
+      }
+    ],
+    [
+      "c3-opt6",
+      {
+        "id": "c3-opt6",
+        "categoryId": "cat-fbi-watching",
+        "candidateKey": "jerry-azumah",
+        "title": "Jerry Azumah is a Genetically Modified Sasquatch",
+        "description": "Evidence of former NFL player Jerry Azumah undergoing nanobot genetic modification",
+        "displayOrder": 6
+      }
+    ],
+    [
+      "c3-opt7",
+      {
+        "id": "c3-opt7",
+        "categoryId": "cat-fbi-watching",
+        "candidateKey": "mass-surveillance",
+        "title": "Mass Government Surveillance (Birds Aren't Real)",
+        "description": "Government surveillance via technology and drone birds tracking citizens",
+        "displayOrder": 7
+      }
+    ],
+    [
+      "c3-opt8",
+      {
+        "id": "c3-opt8",
+        "categoryId": "cat-fbi-watching",
+        "candidateKey": "michael-jackson",
+        "title": "Michael Jackson’s Untimely Death: Conspiracy Theory Unraveled",
+        "description": "Sony targeted MJ for his $1.2B music catalog with Dr. Conrad Murray as fall guy",
+        "displayOrder": 8
+      }
+    ],
+    [
+      "c3-opt9",
+      {
+        "id": "c3-opt9",
+        "categoryId": "cat-fbi-watching",
+        "candidateKey": "stevie-wonder",
+        "title": "Stevie Wonder: Is He Really Who He Says He Is?",
+        "description": "Suspicious incidents suggesting Stevie Wonder might not actually be blind",
+        "displayOrder": 9
+      }
+    ],
+    [
+      "c3-opt10",
+      {
+        "id": "c3-opt10",
+        "categoryId": "cat-fbi-watching",
+        "candidateKey": "covid-nintendo",
+        "title": "COVID Was Manufactured: The Shocking Truth THEY Don't Want You to Hear",
+        "description": "COVID-19 was manufactured by Nintendo, inspired by 1998 Pokérus",
+        "displayOrder": 10
+      }
+    ],
+    [
+      "c3-opt11",
+      {
+        "id": "c3-opt11",
+        "categoryId": "cat-fbi-watching",
+        "candidateKey": "history-lemuria",
+        "title": "History Is Not What You Think!",
+        "description": "Lemuria, evil Martians, synthetic Merkabahs, and pyramid planetary alignment",
+        "displayOrder": 11
+      }
+    ],
+    [
+      "c1-opt1-conspiracy-theory-test-2026",
+      {
+        "id": "c1-opt1-conspiracy-theory-test-2026",
+        "categoryId": "cat-convincing-conspiracy-theory-test-2026",
+        "candidateKey": "avril-lavigne",
+        "title": "Avril Lavigne: No More?",
+        "description": "Replaced by body double Melissa Vandella in 2003",
+        "displayOrder": 1
+      }
+    ],
+    [
+      "c1-opt2-conspiracy-theory-test-2026",
+      {
+        "id": "c1-opt2-conspiracy-theory-test-2026",
+        "categoryId": "cat-convincing-conspiracy-theory-test-2026",
+        "candidateKey": "ikea-threat",
+        "title": "IKEA: A Threat Assessment",
+        "description": "Swedish meatball psy-op and infinite mazes",
+        "displayOrder": 2
+      }
+    ],
+    [
+      "c1-opt3-conspiracy-theory-test-2026",
+      {
+        "id": "c1-opt3-conspiracy-theory-test-2026",
+        "categoryId": "cat-convincing-conspiracy-theory-test-2026",
+        "candidateKey": "denver-airport",
+        "title": "Denver Airport Murals",
+        "description": "Underground bunker network for elites",
+        "displayOrder": 3
+      }
+    ],
+    [
+      "c1-opt4-conspiracy-theory-test-2026",
+      {
+        "id": "c1-opt4-conspiracy-theory-test-2026",
+        "categoryId": "cat-convincing-conspiracy-theory-test-2026",
+        "candidateKey": "birds-not-real",
+        "title": "Birds Aren’t Real",
+        "description": "All birds were replaced by surveillance drones in 1959",
+        "displayOrder": 4
+      }
+    ],
+    [
+      "c1-opt5-conspiracy-theory-test-2026",
+      {
+        "id": "c1-opt5-conspiracy-theory-test-2026",
+        "categoryId": "cat-convincing-conspiracy-theory-test-2026",
+        "candidateKey": "gangster-rap",
+        "title": "Gangster Rap CIA Subversion",
+        "description": "1991 secret meeting to monetize private prisons",
+        "displayOrder": 5
+      }
+    ],
+    [
+      "c2-opt1-conspiracy-theory-test-2026",
+      {
+        "id": "c2-opt1-conspiracy-theory-test-2026",
+        "categoryId": "cat-unhinged-conspiracy-theory-test-2026",
+        "candidateKey": "flat-earth",
+        "title": "Flat Earth & Ice Wall",
+        "description": "NASA guards the 150ft Antarctic ice barrier",
+        "displayOrder": 1
+      }
+    ],
+    [
+      "c2-opt2-conspiracy-theory-test-2026",
+      {
+        "id": "c2-opt2-conspiracy-theory-test-2026",
+        "categoryId": "cat-unhinged-conspiracy-theory-test-2026",
+        "candidateKey": "hollow-moon",
+        "title": "Hollow Moon Spaceship",
+        "description": "The Moon rang like a bell during Apollo 12",
+        "displayOrder": 2
+      }
+    ],
+    [
+      "c2-opt3-conspiracy-theory-test-2026",
+      {
+        "id": "c2-opt3-conspiracy-theory-test-2026",
+        "categoryId": "cat-unhinged-conspiracy-theory-test-2026",
+        "candidateKey": "time-travel-nic-cage",
+        "title": "Nicholas Cage Time Traveler",
+        "description": "Civil war era photograph proves immortality",
+        "displayOrder": 3
+      }
+    ],
+    [
+      "c2-opt4-conspiracy-theory-test-2026",
+      {
+        "id": "c2-opt4-conspiracy-theory-test-2026",
+        "categoryId": "cat-unhinged-conspiracy-theory-test-2026",
+        "candidateKey": "cern-mandela",
+        "title": "CERN & Mandela Effect",
+        "description": "LHC shifted us into a parallel dimension in 2012",
+        "displayOrder": 4
+      }
+    ],
+    [
+      "c2-opt5-conspiracy-theory-test-2026",
+      {
+        "id": "c2-opt5-conspiracy-theory-test-2026",
+        "categoryId": "cat-unhinged-conspiracy-theory-test-2026",
+        "candidateKey": "simulation-theory",
+        "title": "Simulation Glitches",
+        "description": "Quantum entanglement proves we are running on a server",
+        "displayOrder": 5
+      }
+    ],
+    [
+      "c3-opt1-conspiracy-theory-test-2026",
+      {
+        "id": "c3-opt1-conspiracy-theory-test-2026",
+        "categoryId": "cat-fbi-conspiracy-theory-test-2026",
+        "candidateKey": "birds-not-real",
+        "title": "Pigeon Drone Surveillance",
+        "description": "Charging on power lines via electromagnetic induction",
+        "displayOrder": 1
+      }
+    ],
+    [
+      "c3-opt2-conspiracy-theory-test-2026",
+      {
+        "id": "c3-opt2-conspiracy-theory-test-2026",
+        "categoryId": "cat-fbi-conspiracy-theory-test-2026",
+        "candidateKey": "gangster-rap",
+        "title": "Private Prison COINTELPRO",
+        "description": "Targeting hip-hop culture for corporate profit",
+        "displayOrder": 2
+      }
+    ],
+    [
+      "c3-opt3-conspiracy-theory-test-2026",
+      {
+        "id": "c3-opt3-conspiracy-theory-test-2026",
+        "categoryId": "cat-fbi-conspiracy-theory-test-2026",
+        "candidateKey": "cern-mandela",
+        "title": "CERN Timeline Alteration",
+        "description": "Beresntain vs Berenstein Bears quantum rupture",
+        "displayOrder": 3
+      }
+    ],
+    [
+      "c3-opt4-conspiracy-theory-test-2026",
+      {
+        "id": "c3-opt4-conspiracy-theory-test-2026",
+        "categoryId": "cat-fbi-conspiracy-theory-test-2026",
+        "candidateKey": "denver-airport",
+        "title": "DIA Apocalypse Murals",
+        "description": "New World Order command center beneath concourse B",
+        "displayOrder": 4
+      }
+    ]
+  ],
+  "voters": [
+    [
+      "voter-sample-1",
+      {
+        "id": "voter-sample-1",
+        "pollId": "demo-party-2026",
+        "voterToken": "token-sample-1",
+        "nickname": "Sarah M.",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-07-30T02:00:52.116Z"
+      }
+    ],
+    [
+      "voter-9eehr5cm",
+      {
+        "id": "voter-9eehr5cm",
+        "pollId": "demo-party-2026",
+        "voterToken": "voter-e46e10qvm6ms0wbjrh",
+        "nickname": "Jimbo",
+        "ipAddress": "::1",
+        "createdAt": "2026-07-31T21:27:53.874Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-party-2026-1",
+      {
+        "id": "voter-conspiracy-theory-party-2026-1",
+        "pollId": "conspiracy-theory-party-2026",
+        "voterToken": "token-voter-conspiracy-theory-party-2026-1",
+        "nickname": "Fox Mulder",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-party-2026-2",
+      {
+        "id": "voter-conspiracy-theory-party-2026-2",
+        "pollId": "conspiracy-theory-party-2026",
+        "voterToken": "token-voter-conspiracy-theory-party-2026-2",
+        "nickname": "Dana Scully",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-party-2026-3",
+      {
+        "id": "voter-conspiracy-theory-party-2026-3",
+        "pollId": "conspiracy-theory-party-2026",
+        "voterToken": "token-voter-conspiracy-theory-party-2026-3",
+        "nickname": "The Lone Gunmen",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-party-2026-4",
+      {
+        "id": "voter-conspiracy-theory-party-2026-4",
+        "pollId": "conspiracy-theory-party-2026",
+        "voterToken": "token-voter-conspiracy-theory-party-2026-4",
+        "nickname": "Alex Jones (Irony Fan)",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-party-2026-5",
+      {
+        "id": "voter-conspiracy-theory-party-2026-5",
+        "pollId": "conspiracy-theory-party-2026",
+        "voterToken": "token-voter-conspiracy-theory-party-2026-5",
+        "nickname": "Pop Culture Paul",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-party-2026-6",
+      {
+        "id": "voter-conspiracy-theory-party-2026-6",
+        "pollId": "conspiracy-theory-party-2026",
+        "voterToken": "token-voter-conspiracy-theory-party-2026-6",
+        "nickname": "Hip-Hop Historian",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-party-2026-7",
+      {
+        "id": "voter-conspiracy-theory-party-2026-7",
+        "pollId": "conspiracy-theory-party-2026",
+        "voterToken": "token-voter-conspiracy-theory-party-2026-7",
+        "nickname": "Bears Superfan",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-party-2026-8",
+      {
+        "id": "voter-conspiracy-theory-party-2026-8",
+        "pollId": "conspiracy-theory-party-2026",
+        "voterToken": "token-voter-conspiracy-theory-party-2026-8",
+        "nickname": "Flat-Pack Enthusiast",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-party-2026-9",
+      {
+        "id": "voter-conspiracy-theory-party-2026-9",
+        "pollId": "conspiracy-theory-party-2026",
+        "voterToken": "token-voter-conspiracy-theory-party-2026-9",
+        "nickname": "Retro Gamer Tim",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-party-2026-10",
+      {
+        "id": "voter-conspiracy-theory-party-2026-10",
+        "pollId": "conspiracy-theory-party-2026",
+        "voterToken": "token-voter-conspiracy-theory-party-2026-10",
+        "nickname": "Ancient Astronaut Theorist",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-party-2026-11",
+      {
+        "id": "voter-conspiracy-theory-party-2026-11",
+        "pollId": "conspiracy-theory-party-2026",
+        "voterToken": "token-voter-conspiracy-theory-party-2026-11",
+        "nickname": "Single Choice Sam",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-party-2026-12",
+      {
+        "id": "voter-conspiracy-theory-party-2026-12",
+        "pollId": "conspiracy-theory-party-2026",
+        "voterToken": "token-voter-conspiracy-theory-party-2026-12",
+        "nickname": "Truth Seeker Maya",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-party-2026-13",
+      {
+        "id": "voter-conspiracy-theory-party-2026-13",
+        "pollId": "conspiracy-theory-party-2026",
+        "voterToken": "token-voter-conspiracy-theory-party-2026-13",
+        "nickname": "Cyberpunk Kai",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-party-2026-14",
+      {
+        "id": "voter-conspiracy-theory-party-2026-14",
+        "pollId": "conspiracy-theory-party-2026",
+        "voterToken": "token-voter-conspiracy-theory-party-2026-14",
+        "nickname": "Jimbo",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-test-2026-1",
+      {
+        "id": "voter-conspiracy-theory-test-2026-1",
+        "pollId": "conspiracy-theory-test-2026",
+        "voterToken": "token-conspiracy-theory-test-2026-1",
+        "nickname": "Fox Mulder",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-test-2026-2",
+      {
+        "id": "voter-conspiracy-theory-test-2026-2",
+        "pollId": "conspiracy-theory-test-2026",
+        "voterToken": "token-conspiracy-theory-test-2026-2",
+        "nickname": "Dana Scully",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-test-2026-3",
+      {
+        "id": "voter-conspiracy-theory-test-2026-3",
+        "pollId": "conspiracy-theory-test-2026",
+        "voterToken": "token-conspiracy-theory-test-2026-3",
+        "nickname": "The Lone Gunmen",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-test-2026-4",
+      {
+        "id": "voter-conspiracy-theory-test-2026-4",
+        "pollId": "conspiracy-theory-test-2026",
+        "voterToken": "token-conspiracy-theory-test-2026-4",
+        "nickname": "Richard Langly",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-test-2026-5",
+      {
+        "id": "voter-conspiracy-theory-test-2026-5",
+        "pollId": "conspiracy-theory-test-2026",
+        "voterToken": "token-conspiracy-theory-test-2026-5",
+        "nickname": "Melvin Frohike",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-test-2026-6",
+      {
+        "id": "voter-conspiracy-theory-test-2026-6",
+        "pollId": "conspiracy-theory-test-2026",
+        "voterToken": "token-conspiracy-theory-test-2026-6",
+        "nickname": "John Byers",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-test-2026-7",
+      {
+        "id": "voter-conspiracy-theory-test-2026-7",
+        "pollId": "conspiracy-theory-test-2026",
+        "voterToken": "token-conspiracy-theory-test-2026-7",
+        "nickname": "Agent Doggett",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "voter-conspiracy-theory-test-2026-8",
+      {
+        "id": "voter-conspiracy-theory-test-2026-8",
+        "pollId": "conspiracy-theory-test-2026",
+        "voterToken": "token-conspiracy-theory-test-2026-8",
+        "nickname": "Agent Reyes",
+        "ipAddress": "127.0.0.1",
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "voter-5ghhym24",
+      {
+        "id": "voter-5ghhym24",
+        "pollId": "conspiracy-theory-test-2026",
+        "voterToken": "voter-9rl8pvq4y8msatc5pl",
+        "nickname": "will",
+        "ipAddress": "::1",
+        "createdAt": "2026-08-01T20:18:04.162Z"
+      }
+    ]
+  ],
+  "votes": [
+    [
+      "vote-1",
+      {
+        "id": "vote-1",
+        "categoryId": "cat-best-costume",
+        "voterId": "voter-sample-1",
+        "ballotData": [
+          "c1-opt1",
+          "c1-opt2",
+          "c1-opt3"
+        ],
+        "createdAt": "2026-07-30T02:00:52.116Z"
+      }
+    ],
+    [
+      "vote-2",
+      {
+        "id": "vote-2",
+        "categoryId": "cat-best-cocktail",
+        "voterId": "voter-sample-1",
+        "ballotData": {
+          "c2-opt1": 5,
+          "c2-opt2": 4,
+          "c2-opt3": 3
+        },
+        "createdAt": "2026-07-30T02:00:52.116Z"
+      }
+    ],
+    [
+      "vote-3",
+      {
+        "id": "vote-3",
+        "categoryId": "cat-karaoke",
+        "voterId": "voter-sample-1",
+        "ballotData": [
+          "c3-opt1",
+          "c3-opt3"
+        ],
+        "createdAt": "2026-07-30T02:00:52.116Z"
+      }
+    ],
+    [
+      "vote-qw5aok9x",
+      {
+        "id": "vote-qw5aok9x",
+        "categoryId": "cat-best-costume",
+        "voterId": "voter-9eehr5cm",
+        "ballotData": [
+          "c1-opt1",
+          "c1-opt2",
+          "c1-opt3"
+        ],
+        "createdAt": "2026-07-31T21:27:53.874Z"
+      }
+    ],
+    [
+      "vote-jevt9sa5",
+      {
+        "id": "vote-jevt9sa5",
+        "categoryId": "cat-best-cocktail",
+        "voterId": "voter-9eehr5cm",
+        "ballotData": {
+          "c2-opt1": 5,
+          "c2-opt2": 5,
+          "c2-opt3": 3
+        },
+        "createdAt": "2026-07-31T21:27:53.874Z"
+      }
+    ],
+    [
+      "vote-aaro9d28",
+      {
+        "id": "vote-aaro9d28",
+        "categoryId": "cat-karaoke",
+        "voterId": "voter-9eehr5cm",
+        "ballotData": [
+          "c3-opt2",
+          "c3-opt3"
+        ],
+        "createdAt": "2026-07-31T21:27:53.875Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-1",
+      {
+        "id": "vote-conspiracy-theory-party-2026-1",
+        "categoryId": "cat-most-convincing",
+        "voterId": "voter-conspiracy-theory-party-2026-1",
+        "ballotData": [
+          "c1-opt5",
+          "c1-opt7",
+          "c1-opt1"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-2",
+      {
+        "id": "vote-conspiracy-theory-party-2026-2",
+        "categoryId": "cat-most-unhinged",
+        "voterId": "voter-conspiracy-theory-party-2026-1",
+        "ballotData": [
+          "c2-opt10",
+          "c2-opt6",
+          "c2-opt11"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-3",
+      {
+        "id": "vote-conspiracy-theory-party-2026-3",
+        "categoryId": "cat-fbi-watching",
+        "voterId": "voter-conspiracy-theory-party-2026-1",
+        "ballotData": [
+          "c3-opt7",
+          "c3-opt5",
+          "c3-opt3"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-4",
+      {
+        "id": "vote-conspiracy-theory-party-2026-4",
+        "categoryId": "cat-most-convincing",
+        "voterId": "voter-conspiracy-theory-party-2026-2",
+        "ballotData": [
+          "c1-opt4",
+          "c1-opt2",
+          "c1-opt3"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-5",
+      {
+        "id": "vote-conspiracy-theory-party-2026-5",
+        "categoryId": "cat-most-unhinged",
+        "voterId": "voter-conspiracy-theory-party-2026-2",
+        "ballotData": [
+          "c2-opt2",
+          "c2-opt4",
+          "c2-opt8"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-6",
+      {
+        "id": "vote-conspiracy-theory-party-2026-6",
+        "categoryId": "cat-fbi-watching",
+        "voterId": "voter-conspiracy-theory-party-2026-2",
+        "ballotData": [
+          "c3-opt3",
+          "c3-opt4",
+          "c3-opt2"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-7",
+      {
+        "id": "vote-conspiracy-theory-party-2026-7",
+        "categoryId": "cat-most-convincing",
+        "voterId": "voter-conspiracy-theory-party-2026-3",
+        "ballotData": [
+          "c1-opt10",
+          "c1-opt5",
+          "c1-opt7"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-8",
+      {
+        "id": "vote-conspiracy-theory-party-2026-8",
+        "categoryId": "cat-most-unhinged",
+        "voterId": "voter-conspiracy-theory-party-2026-3",
+        "ballotData": [
+          "c2-opt10",
+          "c2-opt11",
+          "c2-opt5"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-9",
+      {
+        "id": "vote-conspiracy-theory-party-2026-9",
+        "categoryId": "cat-fbi-watching",
+        "voterId": "voter-conspiracy-theory-party-2026-3",
+        "ballotData": [
+          "c3-opt10",
+          "c3-opt7",
+          "c3-opt5"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-10",
+      {
+        "id": "vote-conspiracy-theory-party-2026-10",
+        "categoryId": "cat-most-convincing",
+        "voterId": "voter-conspiracy-theory-party-2026-4",
+        "ballotData": [
+          "c1-opt7",
+          "c1-opt11"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-11",
+      {
+        "id": "vote-conspiracy-theory-party-2026-11",
+        "categoryId": "cat-most-unhinged",
+        "voterId": "voter-conspiracy-theory-party-2026-4",
+        "ballotData": [
+          "c2-opt11",
+          "c2-opt7",
+          "c2-opt10"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-12",
+      {
+        "id": "vote-conspiracy-theory-party-2026-12",
+        "categoryId": "cat-fbi-watching",
+        "voterId": "voter-conspiracy-theory-party-2026-4",
+        "ballotData": [
+          "c3-opt7",
+          "c3-opt11"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-13",
+      {
+        "id": "vote-conspiracy-theory-party-2026-13",
+        "categoryId": "cat-most-convincing",
+        "voterId": "voter-conspiracy-theory-party-2026-5",
+        "ballotData": [
+          "c1-opt1",
+          "c1-opt8",
+          "c1-opt9"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-14",
+      {
+        "id": "vote-conspiracy-theory-party-2026-14",
+        "categoryId": "cat-most-unhinged",
+        "voterId": "voter-conspiracy-theory-party-2026-5",
+        "ballotData": [
+          "c2-opt1",
+          "c2-opt9",
+          "c2-opt8"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-15",
+      {
+        "id": "vote-conspiracy-theory-party-2026-15",
+        "categoryId": "cat-fbi-watching",
+        "voterId": "voter-conspiracy-theory-party-2026-5",
+        "ballotData": [
+          "c3-opt8",
+          "c3-opt1",
+          "c3-opt9"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-16",
+      {
+        "id": "vote-conspiracy-theory-party-2026-16",
+        "categoryId": "cat-most-convincing",
+        "voterId": "voter-conspiracy-theory-party-2026-6",
+        "ballotData": [
+          "c1-opt3",
+          "c1-opt8",
+          "c1-opt9"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-17",
+      {
+        "id": "vote-conspiracy-theory-party-2026-17",
+        "categoryId": "cat-most-unhinged",
+        "voterId": "voter-conspiracy-theory-party-2026-6",
+        "ballotData": [
+          "c2-opt3",
+          "c2-opt8",
+          "c2-opt1"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-18",
+      {
+        "id": "vote-conspiracy-theory-party-2026-18",
+        "categoryId": "cat-fbi-watching",
+        "voterId": "voter-conspiracy-theory-party-2026-6",
+        "ballotData": [
+          "c3-opt3",
+          "c3-opt8",
+          "c3-opt4"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-19",
+      {
+        "id": "vote-conspiracy-theory-party-2026-19",
+        "categoryId": "cat-most-convincing",
+        "voterId": "voter-conspiracy-theory-party-2026-7",
+        "ballotData": [
+          "c1-opt6",
+          "c1-opt3",
+          "c1-opt2"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-20",
+      {
+        "id": "vote-conspiracy-theory-party-2026-20",
+        "categoryId": "cat-most-unhinged",
+        "voterId": "voter-conspiracy-theory-party-2026-7",
+        "ballotData": [
+          "c2-opt6",
+          "c2-opt3",
+          "c2-opt10"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-21",
+      {
+        "id": "vote-conspiracy-theory-party-2026-21",
+        "categoryId": "cat-fbi-watching",
+        "voterId": "voter-conspiracy-theory-party-2026-7",
+        "ballotData": [
+          "c3-opt6",
+          "c3-opt3",
+          "c3-opt7"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-22",
+      {
+        "id": "vote-conspiracy-theory-party-2026-22",
+        "categoryId": "cat-most-convincing",
+        "voterId": "voter-conspiracy-theory-party-2026-8",
+        "ballotData": [
+          "c1-opt2",
+          "c1-opt5",
+          "c1-opt8"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-23",
+      {
+        "id": "vote-conspiracy-theory-party-2026-23",
+        "categoryId": "cat-most-unhinged",
+        "voterId": "voter-conspiracy-theory-party-2026-8",
+        "ballotData": [
+          "c2-opt2",
+          "c2-opt5",
+          "c2-opt6"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-24",
+      {
+        "id": "vote-conspiracy-theory-party-2026-24",
+        "categoryId": "cat-fbi-watching",
+        "voterId": "voter-conspiracy-theory-party-2026-8",
+        "ballotData": [
+          "c3-opt2",
+          "c3-opt5",
+          "c3-opt10"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-25",
+      {
+        "id": "vote-conspiracy-theory-party-2026-25",
+        "categoryId": "cat-most-convincing",
+        "voterId": "voter-conspiracy-theory-party-2026-9",
+        "ballotData": [
+          "c1-opt10",
+          "c1-opt4",
+          "c1-opt5"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-26",
+      {
+        "id": "vote-conspiracy-theory-party-2026-26",
+        "categoryId": "cat-most-unhinged",
+        "voterId": "voter-conspiracy-theory-party-2026-9",
+        "ballotData": [
+          "c2-opt10",
+          "c2-opt5",
+          "c2-opt2"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-27",
+      {
+        "id": "vote-conspiracy-theory-party-2026-27",
+        "categoryId": "cat-fbi-watching",
+        "voterId": "voter-conspiracy-theory-party-2026-9",
+        "ballotData": [
+          "c3-opt10",
+          "c3-opt4",
+          "c3-opt5"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-28",
+      {
+        "id": "vote-conspiracy-theory-party-2026-28",
+        "categoryId": "cat-most-convincing",
+        "voterId": "voter-conspiracy-theory-party-2026-10",
+        "ballotData": [
+          "c1-opt11",
+          "c1-opt5",
+          "c1-opt7"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-29",
+      {
+        "id": "vote-conspiracy-theory-party-2026-29",
+        "categoryId": "cat-most-unhinged",
+        "voterId": "voter-conspiracy-theory-party-2026-10",
+        "ballotData": [
+          "c2-opt11",
+          "c2-opt5",
+          "c2-opt10"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-30",
+      {
+        "id": "vote-conspiracy-theory-party-2026-30",
+        "categoryId": "cat-fbi-watching",
+        "voterId": "voter-conspiracy-theory-party-2026-10",
+        "ballotData": [
+          "c3-opt11",
+          "c3-opt5",
+          "c3-opt7"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-31",
+      {
+        "id": "vote-conspiracy-theory-party-2026-31",
+        "categoryId": "cat-most-convincing",
+        "voterId": "voter-conspiracy-theory-party-2026-11",
+        "ballotData": [
+          "c1-opt9"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-32",
+      {
+        "id": "vote-conspiracy-theory-party-2026-32",
+        "categoryId": "cat-most-unhinged",
+        "voterId": "voter-conspiracy-theory-party-2026-11",
+        "ballotData": [
+          "c2-opt9"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-33",
+      {
+        "id": "vote-conspiracy-theory-party-2026-33",
+        "categoryId": "cat-fbi-watching",
+        "voterId": "voter-conspiracy-theory-party-2026-11",
+        "ballotData": [
+          "c3-opt9"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-34",
+      {
+        "id": "vote-conspiracy-theory-party-2026-34",
+        "categoryId": "cat-most-convincing",
+        "voterId": "voter-conspiracy-theory-party-2026-12",
+        "ballotData": [
+          "c1-opt8",
+          "c1-opt1",
+          "c1-opt3"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-35",
+      {
+        "id": "vote-conspiracy-theory-party-2026-35",
+        "categoryId": "cat-most-unhinged",
+        "voterId": "voter-conspiracy-theory-party-2026-12",
+        "ballotData": [
+          "c2-opt8",
+          "c2-opt1",
+          "c2-opt3"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-36",
+      {
+        "id": "vote-conspiracy-theory-party-2026-36",
+        "categoryId": "cat-fbi-watching",
+        "voterId": "voter-conspiracy-theory-party-2026-12",
+        "ballotData": [
+          "c3-opt8",
+          "c3-opt3",
+          "c3-opt1"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-37",
+      {
+        "id": "vote-conspiracy-theory-party-2026-37",
+        "categoryId": "cat-most-convincing",
+        "voterId": "voter-conspiracy-theory-party-2026-13",
+        "ballotData": [
+          "c1-opt4",
+          "c1-opt7",
+          "c1-opt10"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-38",
+      {
+        "id": "vote-conspiracy-theory-party-2026-38",
+        "categoryId": "cat-most-unhinged",
+        "voterId": "voter-conspiracy-theory-party-2026-13",
+        "ballotData": [
+          "c2-opt4",
+          "c2-opt10",
+          "c2-opt7"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-39",
+      {
+        "id": "vote-conspiracy-theory-party-2026-39",
+        "categoryId": "cat-fbi-watching",
+        "voterId": "voter-conspiracy-theory-party-2026-13",
+        "ballotData": [
+          "c3-opt4",
+          "c3-opt7",
+          "c3-opt10"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-40",
+      {
+        "id": "vote-conspiracy-theory-party-2026-40",
+        "categoryId": "cat-most-convincing",
+        "voterId": "voter-conspiracy-theory-party-2026-14",
+        "ballotData": [
+          "c1-opt1",
+          "c1-opt2",
+          "c1-opt3"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-41",
+      {
+        "id": "vote-conspiracy-theory-party-2026-41",
+        "categoryId": "cat-most-unhinged",
+        "voterId": "voter-conspiracy-theory-party-2026-14",
+        "ballotData": [
+          "c2-opt5",
+          "c2-opt6",
+          "c2-opt7"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-party-2026-42",
+      {
+        "id": "vote-conspiracy-theory-party-2026-42",
+        "categoryId": "cat-fbi-watching",
+        "voterId": "voter-conspiracy-theory-party-2026-14",
+        "ballotData": [
+          "c3-opt5",
+          "c3-opt3",
+          "c3-opt2"
+        ],
+        "createdAt": "2026-08-01T19:40:24.571Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-1-1",
+      {
+        "id": "vote-conspiracy-theory-test-2026-1-1",
+        "categoryId": "cat-convincing-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-1",
+        "ballotData": [
+          "c1-opt5-conspiracy-theory-test-2026",
+          "c1-opt1-conspiracy-theory-test-2026",
+          "c1-opt2-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-1-2",
+      {
+        "id": "vote-conspiracy-theory-test-2026-1-2",
+        "categoryId": "cat-unhinged-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-1",
+        "ballotData": [
+          "c2-opt4-conspiracy-theory-test-2026",
+          "c2-opt2-conspiracy-theory-test-2026",
+          "c2-opt1-conspiracy-theory-test-2026",
+          "c2-opt3-conspiracy-theory-test-2026",
+          "c2-opt5-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-1-3",
+      {
+        "id": "vote-conspiracy-theory-test-2026-1-3",
+        "categoryId": "cat-fbi-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-1",
+        "ballotData": [
+          "c3-opt1-conspiracy-theory-test-2026",
+          "c3-opt2-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-2-1",
+      {
+        "id": "vote-conspiracy-theory-test-2026-2-1",
+        "categoryId": "cat-convincing-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-2",
+        "ballotData": [
+          "c1-opt2-conspiracy-theory-test-2026",
+          "c1-opt3-conspiracy-theory-test-2026",
+          "c1-opt1-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-2-2",
+      {
+        "id": "vote-conspiracy-theory-test-2026-2-2",
+        "categoryId": "cat-unhinged-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-2",
+        "ballotData": [
+          "c2-opt5-conspiracy-theory-test-2026",
+          "c2-opt4-conspiracy-theory-test-2026",
+          "c2-opt2-conspiracy-theory-test-2026",
+          "c2-opt3-conspiracy-theory-test-2026",
+          "c2-opt1-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-2-3",
+      {
+        "id": "vote-conspiracy-theory-test-2026-2-3",
+        "categoryId": "cat-fbi-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-2",
+        "ballotData": [
+          "c3-opt2-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-3-1",
+      {
+        "id": "vote-conspiracy-theory-test-2026-3-1",
+        "categoryId": "cat-convincing-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-3",
+        "ballotData": [
+          "c1-opt5-conspiracy-theory-test-2026",
+          "c1-opt4-conspiracy-theory-test-2026",
+          "c1-opt1-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-3-2",
+      {
+        "id": "vote-conspiracy-theory-test-2026-3-2",
+        "categoryId": "cat-unhinged-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-3",
+        "ballotData": [
+          "c2-opt4-conspiracy-theory-test-2026",
+          "c2-opt5-conspiracy-theory-test-2026",
+          "c2-opt2-conspiracy-theory-test-2026",
+          "c2-opt1-conspiracy-theory-test-2026",
+          "c2-opt3-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-3-3",
+      {
+        "id": "vote-conspiracy-theory-test-2026-3-3",
+        "categoryId": "cat-fbi-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-3",
+        "ballotData": [
+          "c3-opt1-conspiracy-theory-test-2026",
+          "c3-opt2-conspiracy-theory-test-2026",
+          "c3-opt4-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-4-1",
+      {
+        "id": "vote-conspiracy-theory-test-2026-4-1",
+        "categoryId": "cat-convincing-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-4",
+        "ballotData": [
+          "c1-opt4-conspiracy-theory-test-2026",
+          "c1-opt5-conspiracy-theory-test-2026",
+          "c1-opt2-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-4-2",
+      {
+        "id": "vote-conspiracy-theory-test-2026-4-2",
+        "categoryId": "cat-unhinged-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-4",
+        "ballotData": [
+          "c2-opt3-conspiracy-theory-test-2026",
+          "c2-opt4-conspiracy-theory-test-2026",
+          "c2-opt5-conspiracy-theory-test-2026",
+          "c2-opt2-conspiracy-theory-test-2026",
+          "c2-opt1-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-4-3",
+      {
+        "id": "vote-conspiracy-theory-test-2026-4-3",
+        "categoryId": "cat-fbi-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-4",
+        "ballotData": [
+          "c3-opt1-conspiracy-theory-test-2026",
+          "c3-opt3-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-5-1",
+      {
+        "id": "vote-conspiracy-theory-test-2026-5-1",
+        "categoryId": "cat-convincing-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-5",
+        "ballotData": [
+          "c1-opt1-conspiracy-theory-test-2026",
+          "c1-opt5-conspiracy-theory-test-2026",
+          "c1-opt3-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-5-2",
+      {
+        "id": "vote-conspiracy-theory-test-2026-5-2",
+        "categoryId": "cat-unhinged-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-5",
+        "ballotData": [
+          "c2-opt2-conspiracy-theory-test-2026",
+          "c2-opt4-conspiracy-theory-test-2026",
+          "c2-opt3-conspiracy-theory-test-2026",
+          "c2-opt5-conspiracy-theory-test-2026",
+          "c2-opt1-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-5-3",
+      {
+        "id": "vote-conspiracy-theory-test-2026-5-3",
+        "categoryId": "cat-fbi-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-5",
+        "ballotData": [
+          "c3-opt2-conspiracy-theory-test-2026",
+          "c3-opt4-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-6-1",
+      {
+        "id": "vote-conspiracy-theory-test-2026-6-1",
+        "categoryId": "cat-convincing-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-6",
+        "ballotData": [
+          "c1-opt3-conspiracy-theory-test-2026",
+          "c1-opt2-conspiracy-theory-test-2026",
+          "c1-opt5-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-6-2",
+      {
+        "id": "vote-conspiracy-theory-test-2026-6-2",
+        "categoryId": "cat-unhinged-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-6",
+        "ballotData": [
+          "c2-opt5-conspiracy-theory-test-2026",
+          "c2-opt2-conspiracy-theory-test-2026",
+          "c2-opt4-conspiracy-theory-test-2026",
+          "c2-opt3-conspiracy-theory-test-2026",
+          "c2-opt1-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-6-3",
+      {
+        "id": "vote-conspiracy-theory-test-2026-6-3",
+        "categoryId": "cat-fbi-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-6",
+        "ballotData": [
+          "c3-opt3-conspiracy-theory-test-2026",
+          "c3-opt4-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-7-1",
+      {
+        "id": "vote-conspiracy-theory-test-2026-7-1",
+        "categoryId": "cat-convincing-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-7",
+        "ballotData": [
+          "c1-opt2-conspiracy-theory-test-2026",
+          "c1-opt1-conspiracy-theory-test-2026",
+          "c1-opt3-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-7-2",
+      {
+        "id": "vote-conspiracy-theory-test-2026-7-2",
+        "categoryId": "cat-unhinged-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-7",
+        "ballotData": [
+          "c2-opt1-conspiracy-theory-test-2026",
+          "c2-opt2-conspiracy-theory-test-2026",
+          "c2-opt3-conspiracy-theory-test-2026",
+          "c2-opt4-conspiracy-theory-test-2026",
+          "c2-opt5-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-7-3",
+      {
+        "id": "vote-conspiracy-theory-test-2026-7-3",
+        "categoryId": "cat-fbi-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-7",
+        "ballotData": [
+          "c3-opt2-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-8-1",
+      {
+        "id": "vote-conspiracy-theory-test-2026-8-1",
+        "categoryId": "cat-convincing-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-8",
+        "ballotData": [
+          "c1-opt4-conspiracy-theory-test-2026",
+          "c1-opt3-conspiracy-theory-test-2026",
+          "c1-opt1-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-8-2",
+      {
+        "id": "vote-conspiracy-theory-test-2026-8-2",
+        "categoryId": "cat-unhinged-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-8",
+        "ballotData": [
+          "c2-opt4-conspiracy-theory-test-2026",
+          "c2-opt3-conspiracy-theory-test-2026",
+          "c2-opt5-conspiracy-theory-test-2026",
+          "c2-opt2-conspiracy-theory-test-2026",
+          "c2-opt1-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-conspiracy-theory-test-2026-8-3",
+      {
+        "id": "vote-conspiracy-theory-test-2026-8-3",
+        "categoryId": "cat-fbi-conspiracy-theory-test-2026",
+        "voterId": "voter-conspiracy-theory-test-2026-8",
+        "ballotData": [
+          "c3-opt1-conspiracy-theory-test-2026",
+          "c3-opt3-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:15:52.752Z"
+      }
+    ],
+    [
+      "vote-mwww92wd",
+      {
+        "id": "vote-mwww92wd",
+        "categoryId": "cat-convincing-conspiracy-theory-test-2026",
+        "voterId": "voter-5ghhym24",
+        "ballotData": [
+          "c1-opt1-conspiracy-theory-test-2026",
+          "c1-opt2-conspiracy-theory-test-2026",
+          "c1-opt3-conspiracy-theory-test-2026",
+          "c1-opt4-conspiracy-theory-test-2026",
+          "c1-opt5-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:18:04.163Z"
+      }
+    ],
+    [
+      "vote-eafvjrwr",
+      {
+        "id": "vote-eafvjrwr",
+        "categoryId": "cat-unhinged-conspiracy-theory-test-2026",
+        "voterId": "voter-5ghhym24",
+        "ballotData": [
+          "c2-opt5-conspiracy-theory-test-2026",
+          "c2-opt4-conspiracy-theory-test-2026",
+          "c2-opt3-conspiracy-theory-test-2026",
+          "c2-opt2-conspiracy-theory-test-2026",
+          "c2-opt1-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:18:04.163Z"
+      }
+    ],
+    [
+      "vote-fzgybp5w",
+      {
+        "id": "vote-fzgybp5w",
+        "categoryId": "cat-fbi-conspiracy-theory-test-2026",
+        "voterId": "voter-5ghhym24",
+        "ballotData": [
+          "c3-opt2-conspiracy-theory-test-2026",
+          "c3-opt1-conspiracy-theory-test-2026",
+          "c3-opt3-conspiracy-theory-test-2026",
+          "c3-opt4-conspiracy-theory-test-2026"
+        ],
+        "createdAt": "2026-08-01T20:18:04.164Z"
+      }
+    ]
+  ]
+}

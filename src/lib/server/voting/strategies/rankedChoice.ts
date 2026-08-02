@@ -95,13 +95,14 @@ export const rankedChoiceStrategy: VotingStrategy = {
 
 			const majorityThreshold = countThisRound > 0 ? Math.floor(countThisRound / 2) + 1 : 1;
 
-			// If highest candidate has majority OR only 1 candidate left
+			// Check for winner round
 			if (activeOptionIds.size === 1 || (highestOptionId && maxVotes >= majorityThreshold)) {
 				winnerId = highestOptionId;
 				rcvRounds.push({
 					roundNumber: roundNum,
 					tallies: { ...tallies },
 					eliminatedOptionId: null,
+					exhaustedCount: totalBallots - countThisRound,
 					note: winnerId
 						? `${optionMap.get(winnerId)?.title} won with ${maxVotes} votes (${countThisRound > 0 ? Math.round((maxVotes / countThisRound) * 100) : 0}%)`
 						: 'Round ended'
@@ -128,19 +129,43 @@ export const rankedChoiceStrategy: VotingStrategy = {
 					roundNumber: roundNum,
 					tallies: { ...tallies },
 					eliminatedOptionId: null,
+					exhaustedCount: totalBallots - countThisRound,
 					note: `Tie broken. ${optionMap.get(winnerId!)?.title} declared winner.`
 				});
 				break;
 			}
 
-			// Eliminate lowest candidate
+			// Calculate vote transfers before removing lowest candidate
 			if (lowestOptionId) {
+				const eliminatedTitle = optionMap.get(lowestOptionId)?.title || null;
+				const transfers: Record<string, number> = {};
+				const prevActiveOptionIds = new Set(activeOptionIds);
+				
+				// Remove lowest candidate from active set
 				activeOptionIds.delete(lowestOptionId);
+
+				// Find where the eliminated candidate's top-choice votes transfer
+				for (const ballot of ballots) {
+					const topBefore = ballot.find((id) => prevActiveOptionIds.has(id));
+					if (topBefore === lowestOptionId) {
+						const nextActive = ballot.find((id) => activeOptionIds.has(id));
+						if (nextActive) {
+							transfers[nextActive] = (transfers[nextActive] || 0) + 1;
+						} else {
+							transfers['exhausted'] = (transfers['exhausted'] || 0) + 1;
+						}
+					}
+				}
+
 				rcvRounds.push({
 					roundNumber: roundNum,
 					tallies: { ...tallies },
 					eliminatedOptionId: lowestOptionId,
-					note: `Eliminated ${optionMap.get(lowestOptionId)?.title}`
+					eliminatedOptionTitle: eliminatedTitle,
+					transferredVotes: tallies[lowestOptionId] || 0,
+					transfers,
+					exhaustedCount: totalBallots - countThisRound,
+					note: `Eliminated ${eliminatedTitle}`
 				});
 			}
 

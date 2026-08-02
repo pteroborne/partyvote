@@ -16,19 +16,30 @@ export interface RawVote {
 	createdAt: Date | string;
 }
 
+export interface BordaBreakdownItem {
+	rank: number;
+	ptsPerVote: number;
+	count: number;
+	totalPoints: number;
+}
+
 export interface CandidateTally {
 	optionId: string;
 	title: string;
 	candidateKey?: string | null;
 	votes: number;
 	percentage: number;
+	bordaBreakdown?: BordaBreakdownItem[];
 }
 
 export interface RCVRound {
 	roundNumber: number;
 	tallies: Record<string, number>; // optionId -> vote count in this round
 	eliminatedOptionId?: string | null;
+	eliminatedOptionTitle?: string | null;
 	transferredVotes?: number;
+	transfers?: Record<string, number>; // optionId or 'exhausted' -> vote count transferred in this round
+	exhaustedCount?: number; // cumulative exhausted votes up to this round
 	note?: string;
 }
 

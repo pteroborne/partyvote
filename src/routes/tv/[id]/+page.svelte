@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import QRCode from 'qrcode';
 	import TvBackgroundCanvas from '$lib/components/TvBackgroundCanvas.svelte';
-	import { playTransitionSound, playStepSound, playHoverSound, playTapSound } from '$lib/audio';
+	import { playTransitionSound, playStepSound, playWinnerSound } from '$lib/audio';
 
 	let pollId = $derived(page.params.id);
 
@@ -14,8 +14,6 @@
 	let errorMsg = $state('');
 	let recentVoterNotification = $state('');
 	let eventSource: EventSource | null = null;
-	let autoPlayInterval: NodeJS.Timeout | null = null;
-	let isAutoPlaying = $state(false);
 	let isFxEnabled = $state(true);
 	let isSoundEnabled = $state(true);
 	let clockTime = $state('');
@@ -23,10 +21,8 @@
 	let revealFlash = $state(false);
 
 	let activeWipe = $state<string | null>(null);
-	let revealPhase = $state<1 | 2 | 3>(1); // 1 = Category, 2 = Winner, 3 = Voting Info
-	let phaseTimers: NodeJS.Timeout[] = [];
-
 	let prevRevealStep = $state(0);
+	let prevRevealSubStep = $state(-1);
 
 	const wipeTypes = ['shutter', 'cyber-grid', 'aperture', 'slant-slash', 'holo-scan'];
 
@@ -40,15 +36,8 @@
 
 	onDestroy(() => {
 		if (eventSource) eventSource.close();
-		if (autoPlayInterval) clearInterval(autoPlayInterval);
 		if (clockInterval) clearInterval(clockInterval);
-		clearPhaseTimers();
 	});
-
-	function clearPhaseTimers() {
-		phaseTimers.forEach(t => clearTimeout(t));
-		phaseTimers = [];
-	}
 
 	function updateClock() {
 		const now = new Date();
@@ -61,10 +50,14 @@
 			const data = await res.json();
 			if (res.ok) {
 				const currentStep = data.poll.currentRevealStep || 0;
-				if (currentStep !== prevRevealStep && currentStep > 0 && data.poll.status === 'closed') {
-					start3PartRevealSequence(currentStep);
+				const currentSubStep = data.poll.currentRevealSubStep ?? 0;
+
+				if (currentStep !== prevRevealStep || currentSubStep !== prevRevealSubStep) {
+					handleStepTransition(currentStep, currentSubStep, data);
 				}
+
 				prevRevealStep = currentStep;
+				prevRevealSubStep = currentSubStep;
 				pollData = data;
 			} else {
 				errorMsg = data.error || 'Failed to load poll';
@@ -76,35 +69,24 @@
 		}
 	}
 
-	/** 3-Part Sequential Category Reveal Sequence */
-	function start3PartRevealSequence(step: number) {
-		clearPhaseTimers();
+	function handleStepTransition(step: number, subStep: number, data: any) {
+		if (step === 0) return;
+		const catItem = data?.categories?.[step - 1];
+		if (!catItem) return;
 
-		// Part 1 (0s): Show Category Title prominently
-		revealPhase = 1;
-
-		// Part 2 (+1.4s): Trigger Winner Reveal with Wipe Transition & Paired Bassy Audio
-		const timer1 = setTimeout(() => {
-			const wipeName = wipeTypes[(step - 1) % wipeTypes.length];
-			activeWipe = wipeName;
-
-			if (isSoundEnabled) {
-				playTransitionSound(wipeName); // Plays paired bassy sci-fi sound!
-			}
-
+		if (subStep === 0) {
+			activeWipe = 'shutter';
+			if (isSoundEnabled) playTransitionSound('shutter');
+			setTimeout(() => (activeWipe = null), 600);
+		} else if (subStep === 99) {
+			activeWipe = 'cyber-grid';
 			revealFlash = true;
-			revealPhase = 2; // Winner Card revealed!
-
-			setTimeout(() => (revealFlash = false), 500);
-			setTimeout(() => (activeWipe = null), 750);
-		}, 1400);
-
-		// Part 3 (+3.2s): Fade in Category Voting Standings Info below
-		const timer2 = setTimeout(() => {
-			revealPhase = 3;
-		}, 3200);
-
-		phaseTimers.push(timer1, timer2);
+			if (isSoundEnabled) playWinnerSound();
+			setTimeout(() => (revealFlash = false), 600);
+			setTimeout(() => (activeWipe = null), 800);
+		} else if (catItem.category?.votingStrategy === 'ranked-choice') {
+			if (isSoundEnabled) playStepSound();
+		}
 	}
 
 	async function generateQrCode() {
@@ -159,41 +141,10 @@
 		eventSource.addEventListener('presentation_step_changed', () => loadPollData());
 		eventSource.addEventListener('poll_updated', () => loadPollData());
 	}
-
-	function toggleAutoPlay() {
-		playTapSound();
-		if (isAutoPlaying) {
-			if (autoPlayInterval) clearInterval(autoPlayInterval);
-			isAutoPlaying = false;
-		} else {
-			isAutoPlaying = true;
-			advanceStep();
-			autoPlayInterval = setInterval(() => {
-				advanceStep();
-			}, 9000); // 9 second pacing for 3-part reveal
-		}
-	}
-
-	async function advanceStep() {
-		if (!pollData) return;
-		const total = pollData.categories.length;
-		let nextStep = (pollData.poll.currentRevealStep || 0) + 1;
-		if (nextStep > total) nextStep = 1;
-
-		try {
-			await fetch(`/api/polls/${pollId}/reveal`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ step: nextStep })
-			});
-		} catch (e) {
-			console.error('Auto-play advance failed:', e);
-		}
-	}
 </script>
 
 <svelte:head>
-	<title>{pollData?.poll?.title || 'Party Vote'} | Presentation Display</title>
+	<title>{pollData?.poll?.title || 'Party Vote'} | Broadcast Display</title>
 </svelte:head>
 
 <TvBackgroundCanvas enabled={isFxEnabled} speedMultiplier={pollData?.poll?.status === 'closed' ? 1.8 : 1.0} />
@@ -206,11 +157,13 @@
 	<div class="reveal-flash-overlay"></div>
 {/if}
 
+
+
 <div class="tv-fullwidth-container">
 	{#if loading}
 		<div class="center-state empire-panel">
 			<div class="panel-tag">[ SYSTEM INITIALIZATION ]</div>
-			<h2>LOADING PRESENTATION DISPLAY...</h2>
+			<h2>LOADING BROADCAST DISPLAY...</h2>
 		</div>
 	{:else if errorMsg}
 		<div class="center-state empire-panel">
@@ -223,7 +176,7 @@
 		{@const revealStep = poll.currentRevealStep || 0}
 		{@const isClosed = poll.status === 'closed'}
 
-		<!-- TV Compact Header (Subtle so category & winner take center stage) -->
+		<!-- BROADCAST TV HEADER (CLEAN & NON-INTERACTIVE) -->
 		<header class="empire-panel tv-compact-header">
 			<div class="header-left">
 				<div class="page-title-subtle">
@@ -235,22 +188,6 @@
 
 			<div class="header-right">
 				<span class="clock-display">{clockTime}</span>
-
-				<button
-					class="btn btn-sm btn-ghost"
-					onclick={() => { playTapSound(); isSoundEnabled = !isSoundEnabled; }}
-					onmouseenter={playHoverSound}
-				>
-					AUDIO: {isSoundEnabled ? 'ON' : 'OFF'}
-				</button>
-
-				<button
-					class="btn btn-sm btn-ghost"
-					onclick={() => { playTapSound(); isFxEnabled = !isFxEnabled; }}
-					onmouseenter={playHoverSound}
-				>
-					CANVAS: {isFxEnabled ? 'ON' : 'OFF'}
-				</button>
 
 				<div class="ballot-counter">
 					<span class="num">{pollData.totalVoterCount}</span>
@@ -309,23 +246,13 @@
 				</section>
 			</main>
 		{:else}
-			<!-- CEREMONY MODE: 3-PART SEQUENTIAL CATEGORY REVEAL -->
+			<!-- CEREMONY MODE: BROADCAST STAGING -->
 			<main class="ceremony-container">
-				<div class="ceremony-top-bar">
-					<button
-						class="btn {isAutoPlaying ? 'btn-danger' : 'btn-gold'}"
-						onclick={toggleAutoPlay}
-						onmouseenter={playHoverSound}
-					>
-						{isAutoPlaying ? '⏸ PAUSE CEREMONY' : '▶ START AUTOMATED CEREMONY'}
-					</button>
-				</div>
-
 				{#if revealStep === 0}
 					<section class="empire-panel ceremony-hero">
 						<div class="panel-tag">[ VOTING CLOSED ]</div>
 						<h2>PRESENTATION CEREMONY READY</h2>
-						<p class="muted-text">Use host admin or click Automated Ceremony to reveal category winners one by one.</p>
+						<p class="muted-text">Waiting for host to start category reveals on Host Admin console.</p>
 					</section>
 				{:else}
 					{@const currentCatIdx = revealStep - 1}
@@ -337,22 +264,35 @@
 					{#if catItem}
 						{@const cat = catItem.category}
 						{@const result = catItem.result}
+						{@const subStep = poll.currentRevealSubStep ?? 0}
 
 						<section class="empire-panel ceremony-hero">
-							<!-- PART 1: CATEGORY TITLE & STRATEGY (ALWAYS VISIBLE AT STEP START) -->
-							<div class="category-header-stage">
-								<div class="ceremony-meta">
-									<div class="panel-tag">[ CATEGORY {revealStep} OF {categories.length} ]</div>
-									<span class="badge badge-strategy">{cat.votingStrategy}</span>
+							<!-- STAGE 1: CATEGORY INTRO CARD (When subStep === 0) -->
+							{#if subStep === 0}
+								<div class="category-header-stage cat-intro-center">
+									<div class="ceremony-meta">
+										<div class="panel-tag">[ CATEGORY {revealStep} OF {categories.length} ]</div>
+										<span class="badge badge-strategy">{cat.votingStrategy}</span>
+									</div>
+									<h1 class="cat-title-epic">{cat.title}</h1>
+									{#if cat.description}
+										<p class="cat-desc-epic">{cat.description}</p>
+									{/if}
+									<div class="space-v-lg"></div>
+									<div class="stage-tag-subtle">[ REVEAL COMMENCING ON HOST SIGNAL ]</div>
+								</div>
+							{:else if subStep === 99 || (cat.votingStrategy !== 'ranked-choice' && subStep > 0)}
+								<!-- STAGE 3: WINNER FINALE CARD (When subStep === 99 or non-RCV revealed) -->
+								<div class="category-header-stage">
+									<div class="ceremony-meta">
+										<div class="panel-tag">[ CATEGORY {revealStep} OF {categories.length} ]</div>
+										<span class="badge badge-strategy">{cat.votingStrategy}</span>
+									</div>
+									<h1 class="cat-title-epic">{cat.title}</h1>
 								</div>
 
-								<h1 class="cat-title-epic">{cat.title}</h1>
-							</div>
+								<div class="space-v-lg"></div>
 
-							<div class="space-v-lg"></div>
-
-							<!-- PART 2: WINNER CARD (REVEALS IN PHASE 2 WITH WIPE & BASSY SYNTH) -->
-							{#if revealPhase >= 2}
 								<div class="winner-box-hero winner-enter-animated">
 									<div class="winner-header-tag">
 										<span class="trophy-icon">🏆</span>
@@ -367,34 +307,156 @@
 										<p class="result-note">{result.summaryMessage}</p>
 									{/if}
 								</div>
-							{:else}
-								<div class="winner-placeholder-card">
-									<span class="panel-tag">[ REVEALING WINNER... ]</span>
-								</div>
-							{/if}
 
-							<!-- PART 3: VOTING INFO & STANDINGS (REVEALS SLIGHTLY LATER IN PHASE 3, COMPACT AT BOTTOM) -->
-							{#if revealPhase >= 3}
+								<!-- Compact Final Standings -->
 								<div class="standings-box-compact standings-enter-animated">
-									<div class="panel-tag">[ CATEGORY VOTING BREAKDOWN ]</div>
+									<div class="panel-tag">[ FINAL VOTING BREAKDOWN ]</div>
 									<div class="space-v"></div>
 
 									<div class="bars-list">
 										{#each result.rankings as r, rIdx}
 											<div class="bar-item">
 												<div class="bar-info">
-													<span class="rank">#{rIdx + 1} {r.title}</span>
-													<span class="tally">{r.votes} votes ({r.percentage}%)</span>
+													<span class="rank">
+														#{rIdx + 1} {r.title}
+														{#if cat.votingStrategy === 'borda-count' && r.bordaBreakdown}
+															<span class="borda-rank-chips">
+																{#each r.bordaBreakdown as seg}
+																	{#if seg.count > 0}
+																		<span class="borda-chip rank-bg-{seg.rank}">
+																			{seg.rank === 1 ? '🥇' : seg.rank === 2 ? '🥈' : seg.rank === 3 ? '🥉' : `#${seg.rank}`} {seg.count}× ({seg.totalPoints}pt)
+																		</span>
+																	{/if}
+																{/each}
+															</span>
+														{/if}
+													</span>
+													<span class="tally">{r.votes} {cat.votingStrategy === 'borda-count' ? 'Borda points' : 'votes'} ({r.percentage}%)</span>
 												</div>
 												<div class="bar-track">
-													<div
-														class="bar-fill {rIdx === 0 ? 'bar-winner' : ''}"
-														style="width: {Math.max(r.percentage, 4)}%;"
-													></div>
+													{#if cat.votingStrategy === 'borda-count' && r.bordaBreakdown && r.votes > 0}
+														<div class="bar-fill-stacked" style="width: {Math.max(r.percentage, 4)}%;">
+															{#each r.bordaBreakdown as seg}
+																{#if seg.totalPoints > 0}
+																	{@const segPct = (seg.totalPoints / r.votes) * 100}
+																	<div
+																		class="stacked-segment rank-segment-{seg.rank}"
+																		style="width: {segPct}%;"
+																		title="{seg.rank === 1 ? '1st Choice' : seg.rank === 2 ? '2nd Choice' : seg.rank === 3 ? '3rd Choice' : `${seg.rank}th Choice`}: {seg.count} votes × {seg.ptsPerVote} pts = {seg.totalPoints} pts"
+																	></div>
+																{/if}
+															{/each}
+														</div>
+													{:else}
+														<div
+															class="bar-fill {rIdx === 0 ? 'bar-winner' : ''}"
+															style="width: {Math.max(r.percentage, 4)}%;"
+														></div>
+													{/if}
 												</div>
 											</div>
 										{/each}
 									</div>
+								</div>
+							{:else if cat.votingStrategy === 'ranked-choice' && result.rcvRounds && result.rcvRounds.length > 0}
+								<!-- STAGE 2: RCV ROUND STORYLINE (When subStep is 1..M) -->
+								{@const optionTitleMap = new Map((catItem.options || []).map((o: any) => [o.id, o.title]))}
+								{@const rcvRounds = result.rcvRounds}
+								{@const currentRoundIdx = Math.min(Math.max(0, subStep - 1), rcvRounds.length - 1)}
+								{@const round = rcvRounds[currentRoundIdx]}
+								{@const exhaustedCount = round.exhaustedCount || 0}
+								{@const exhaustedPct = result.totalBallots > 0 ? Math.round((exhaustedCount / result.totalBallots) * 100) : 0}
+
+								<div class="category-header-stage">
+									<div class="ceremony-meta">
+										<div class="panel-tag">[ CATEGORY {revealStep} OF {categories.length} // INSTANT RUNOFF ]</div>
+										<span class="badge badge-strategy">Ranked Choice (Round {round.roundNumber} of {rcvRounds.length})</span>
+									</div>
+									<h1 class="cat-title-epic-sm">{cat.title}</h1>
+								</div>
+
+								<div class="space-v"></div>
+
+								<div class="rcv-breakdown-single-pane empire-panel-subtle">
+									<div class="rcv-round-note-banner">
+										<span class="pulse-dot"></span>
+										<span class="round-num-label">ROUND {round.roundNumber} STANDINGS:</span>
+										<span class="round-note-text">{round.note || 'Active Tally'}</span>
+									</div>
+
+									<div class="space-v"></div>
+
+									<!-- Single-Pane Candidate Bars List -->
+									<div class="bars-list">
+										{#each catItem.options as opt}
+											{@const vCount = round.tallies[opt.id] ?? 0}
+											{@const pct = result.totalBallots > 0 ? Math.round((vCount / result.totalBallots) * 100) : 0}
+											{@const isEliminatedInThisRound = round.eliminatedOptionId === opt.id}
+											{@const isEliminatedInEarlierRound = round.tallies[opt.id] === undefined}
+											{@const isWinnerInFinalRound = result.winnerOptionId === opt.id && currentRoundIdx === rcvRounds.length - 1}
+											{@const transferredInCount = round.transfers?.[opt.id] || 0}
+
+											<div class="bar-item {isEliminatedInThisRound ? 'bar-item-eliminated' : ''} {isWinnerInFinalRound ? 'bar-item-winner' : ''} {isEliminatedInEarlierRound ? 'bar-item-collapsed' : ''}">
+												<div class="bar-info">
+													<span class="rank">
+														{opt.title}
+														{#if isEliminatedInThisRound}
+															<span class="badge badge-eliminated">❌ OUT IN ROUND {round.roundNumber}</span>
+														{:else if isWinnerInFinalRound}
+															<span class="badge badge-winner-tag">🏆 WINNER</span>
+														{:else if transferredInCount > 0}
+															<span class="badge badge-transferred-tag">➜ +{transferredInCount} transferred</span>
+														{/if}
+													</span>
+													<span class="tally">{vCount} votes ({pct}%)</span>
+												</div>
+												<div class="bar-track">
+													<div
+														class="bar-fill {isEliminatedInThisRound ? 'bar-fill-eliminated' : isWinnerInFinalRound ? 'bar-winner' : ''}"
+														style="width: {Math.max(pct, isEliminatedInThisRound || vCount > 0 ? 4 : 0)}%;"
+													></div>
+												</div>
+											</div>
+										{/each}
+
+										<!-- Exhausted Ballots Progress Bar -->
+										<div class="bar-item bar-item-exhausted-track">
+											<div class="bar-info">
+												<span class="rank exhausted-track-label">
+													💨 Exhausted / Rolled Off Ballots
+													<span class="muted-text-sm">(No remaining choices ranked)</span>
+												</span>
+												<span class="tally">{exhaustedCount} votes ({exhaustedPct}%)</span>
+											</div>
+											<div class="bar-track bar-track-exhausted">
+												<div
+													class="bar-fill bar-fill-exhausted"
+													style="width: {Math.max(exhaustedPct, exhaustedCount > 0 ? 4 : 0)}%;"
+												></div>
+											</div>
+										</div>
+									</div>
+
+									<!-- Inline Round Transfer Summary -->
+									{#if round.eliminatedOptionId && (round.transfers ? Object.entries(round.transfers) : []).length > 0}
+										{@const transfersList = Object.entries(round.transfers) as [string, number][]}
+										<div class="space-v"></div>
+										<div class="inline-transfer-summary">
+											<div class="transfer-summary-header">
+												<span class="icon">⚡</span>
+												VOTE REDISTRIBUTION FLOW (ROUND {round.roundNumber}):
+											</div>
+											<div class="transfer-summary-chips">
+												{#each transfersList as [targetId, count]}
+													{#if targetId === 'exhausted'}
+														<span class="chip chip-exhausted">💨 {count} ballot{count > 1 ? 's' : ''} exhausted</span>
+													{:else}
+														<span class="chip chip-transferred">➜ +{count} transferred to <strong>{optionTitleMap.get(targetId) || targetId}</strong></span>
+													{/if}
+												{/each}
+											</div>
+										</div>
+									{/if}
 								</div>
 							{/if}
 						</section>
@@ -594,20 +656,31 @@
 		width: 100%;
 	}
 
-	.ceremony-top-bar {
-		display: flex;
-		justify-content: flex-end;
-	}
-
 	.ceremony-hero {
 		padding: 44px 48px;
 		display: flex;
 		flex-direction: column;
 	}
 
-	/* 3-PART SEQUENTIAL STAGING */
+	.cat-intro-center {
+		text-align: center;
+		padding: 60px 24px;
+	}
 
-	/* PART 1: CATEGORY TITLE (0s) */
+	.cat-desc-epic {
+		font-size: 1.3rem;
+		color: var(--text-secondary);
+		margin-top: 16px;
+	}
+
+	.stage-tag-subtle {
+		font-family: var(--font-mono);
+		font-weight: 800;
+		color: var(--accent-cyan);
+		font-size: 0.95rem;
+		letter-spacing: 0.1em;
+	}
+
 	.category-header-stage {
 		animation: categoryTitleEnter 0.5s ease-out forwards;
 	}
@@ -629,7 +702,13 @@
 		-webkit-text-fill-color: transparent;
 	}
 
-	/* PART 2: WINNER CARD (+1.4s) */
+	.cat-title-epic-sm {
+		font-size: 2.2rem;
+		letter-spacing: 0.03em;
+		color: #ffffff;
+		margin: 0;
+	}
+
 	.winner-box-hero {
 		padding: 36px 44px;
 		background: radial-gradient(circle at 0% 50%, rgba(255, 215, 0, 0.16), transparent 75%), var(--bg-panel-elevated);
@@ -640,14 +719,6 @@
 
 	.winner-enter-animated {
 		animation: winnerCardEnter 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-	}
-
-	.winner-placeholder-card {
-		padding: 40px;
-		background: rgba(22, 22, 34, 0.4);
-		border: 2px dashed rgba(255, 215, 0, 0.3);
-		text-align: center;
-		margin-bottom: 28px;
 	}
 
 	.winner-header-tag {
@@ -682,7 +753,6 @@
 		font-size: 1.05rem;
 	}
 
-	/* PART 3: VOTING INFO & STANDINGS (+3.2s COMPACT AT BOTTOM) */
 	.standings-box-compact {
 		background: var(--bg-panel-elevated);
 		padding: 24px 28px;
@@ -691,6 +761,32 @@
 
 	.standings-enter-animated {
 		animation: standingsEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	}
+
+	.rcv-breakdown-container {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	.rcv-round-note-banner {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		background: rgba(0, 240, 255, 0.08);
+		border: 1px solid var(--accent-cyan);
+		padding: 10px 16px;
+		font-family: var(--font-mono);
+		font-size: 0.95rem;
+	}
+
+	.round-num-label {
+		color: var(--accent-cyan);
+		font-weight: 800;
+	}
+
+	.round-note-text {
+		color: var(--text-primary);
 	}
 
 	.bars-list {
@@ -730,6 +826,313 @@
 	.bar-winner {
 		background: linear-gradient(90deg, var(--accent-cyan), var(--accent-gold));
 		box-shadow: 0 0 15px var(--accent-gold);
+	}
+
+	.bar-item-eliminated {
+		opacity: 0.7;
+	}
+
+	.badge-eliminated {
+		background: rgba(255, 60, 60, 0.2);
+		color: #ff5555;
+		border: 1px solid #ff5555;
+		font-size: 0.7rem;
+		padding: 2px 6px;
+		margin-left: 8px;
+	}
+
+	.badge-winner-tag {
+		background: rgba(255, 215, 0, 0.2);
+		color: var(--accent-gold);
+		border: 1px solid var(--accent-gold);
+		font-size: 0.7rem;
+		padding: 2px 6px;
+		margin-left: 8px;
+	}
+
+	.bar-fill-eliminated {
+		background: #ff5555 !important;
+		box-shadow: 0 0 10px rgba(255, 85, 85, 0.5);
+	}
+
+	.elim-text { color: #ff6666; font-weight: 700; }
+	.win-text { color: var(--accent-gold); font-weight: 800; }
+
+	/* DRAMATIC ELIMINATION SPLASH OVERLAY */
+	.elimination-splash-overlay {
+		position: fixed;
+		inset: 0;
+		background: rgba(10, 5, 15, 0.88);
+		backdrop-filter: blur(10px);
+		z-index: 95;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		pointer-events: none;
+		animation: popZoomIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	}
+
+	.elimination-splash-card {
+		background: radial-gradient(circle at 50% 50%, rgba(255, 60, 60, 0.25), transparent 75%), var(--bg-panel-elevated);
+		border: 3px solid #ff4444;
+		box-shadow: 0 0 60px rgba(255, 68, 68, 0.7), var(--shadow-brutal-gold);
+		padding: 44px 56px;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 12px;
+		max-width: 800px;
+		width: 90%;
+	}
+
+	.splash-tag {
+		font-family: var(--font-mono);
+		font-weight: 800;
+		color: #ff5555;
+		font-size: 1.15rem;
+		letter-spacing: 0.08em;
+	}
+
+	.splash-candidate-name {
+		font-size: 3.2rem;
+		font-weight: 800;
+		color: #ffffff;
+		text-shadow: 0 0 30px rgba(255, 85, 85, 0.8);
+		margin: 0;
+		line-height: 1.1;
+	}
+
+	.splash-sub {
+		font-family: var(--font-mono);
+		color: var(--text-secondary);
+		font-size: 1.05rem;
+		font-weight: 700;
+		margin: 0;
+	}
+
+	.splash-transfer-preview {
+		margin-top: 14px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.splash-transfer-tag {
+		font-family: var(--font-mono);
+		color: var(--accent-cyan);
+		font-size: 0.85rem;
+		font-weight: 800;
+	}
+
+	.splash-chips {
+		display: flex;
+		gap: 10px;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+
+	.splash-chip {
+		font-family: var(--font-mono);
+		font-size: 0.9rem;
+		font-weight: 700;
+		padding: 6px 12px;
+		border-radius: 4px;
+	}
+
+	/* RCV DUAL PANE STORY GRID */
+	.rcv-dual-pane-grid {
+		display: grid;
+		grid-template-columns: 58% 40%;
+		gap: 2%;
+		width: 100%;
+		margin-top: 12px;
+	}
+
+	@media (max-width: 1100px) {
+		.rcv-dual-pane-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.rcv-pane-left, .rcv-pane-right {
+		padding: 22px 26px;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.bar-item-collapsed {
+		opacity: 0.25;
+		max-height: 28px;
+		overflow: hidden;
+		transition: all 0.5s ease-out;
+	}
+
+	.badge-transferred-tag {
+		background: rgba(0, 240, 255, 0.2);
+		color: var(--accent-cyan);
+		border: 1px solid var(--accent-cyan);
+		font-size: 0.7rem;
+		padding: 2px 6px;
+		margin-left: 8px;
+		animation: pulseGlow 1.2s infinite;
+	}
+
+	.bar-item-exhausted-track {
+		margin-top: 14px;
+		padding-top: 12px;
+		border-top: 1px dashed var(--border-subtle);
+	}
+
+	.exhausted-track-label {
+		color: var(--accent-gold);
+		font-weight: 700;
+	}
+
+	.muted-text-sm {
+		color: var(--text-dim);
+		font-size: 0.75rem;
+		font-weight: 400;
+	}
+
+	.bar-track-exhausted {
+		background: rgba(255, 180, 0, 0.08) !important;
+		border: 1px dashed var(--accent-gold) !important;
+	}
+
+	.bar-fill-exhausted {
+		background: linear-gradient(90deg, rgba(255, 180, 0, 0.4), var(--accent-gold)) !important;
+		box-shadow: 0 0 10px rgba(255, 180, 0, 0.3);
+	}
+
+	/* SINGLE PANE RCV BREAKDOWN STYLING */
+	.rcv-breakdown-single-pane {
+		padding: 28px 32px;
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+	}
+
+	.inline-transfer-summary {
+		background: var(--bg-space);
+		border: 1px solid var(--border-subtle);
+		padding: 16px 20px;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		font-family: var(--font-mono);
+	}
+
+	.transfer-summary-header {
+		font-weight: 800;
+		color: var(--accent-cyan);
+		font-size: 0.9rem;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.transfer-summary-chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	.chip {
+		font-size: 0.85rem;
+		font-weight: 700;
+		padding: 4px 10px;
+		border-radius: 3px;
+	}
+
+	/* STACKED BORDA ACCUMULATION BAR STYLING */
+	.bar-fill-stacked {
+		height: 100%;
+		display: flex;
+		overflow: hidden;
+		transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+		box-shadow: 0 0 12px rgba(255, 215, 0, 0.25);
+	}
+
+	.stacked-segment {
+		height: 100%;
+		transition: width 0.5s ease-out;
+		position: relative;
+	}
+
+	/* Rank 1: Metallic Gold */
+	.rank-segment-1 {
+		background: linear-gradient(90deg, #ffe066, #ffd700, #ffb700);
+		box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.6);
+	}
+
+	/* Rank 2: Metallic Silver */
+	.rank-segment-2 {
+		background: linear-gradient(90deg, #f0f0f0, #c0c0c0, #a0a0a0);
+		box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.5);
+	}
+
+	/* Rank 3: Metallic Bronze */
+	.rank-segment-3 {
+		background: linear-gradient(90deg, #e59866, #cd7f32, #995c26);
+		box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.4);
+	}
+
+	/* Rank 4: Electric Cyan */
+	.rank-segment-4 {
+		background: linear-gradient(90deg, #80f5ff, #00f0ff, #0099cc);
+	}
+
+	/* Rank 5+: Neon Purple */
+	.rank-segment-5, .rank-segment-6, .rank-segment-7, .rank-segment-8 {
+		background: linear-gradient(90deg, #c084fc, #a855f7, #7e22ce);
+	}
+
+	/* BORDA BREAKDOWN CHIPS */
+	.borda-rank-chips {
+		display: inline-flex;
+		gap: 6px;
+		margin-left: 10px;
+		vertical-align: middle;
+	}
+
+	.borda-chip {
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		font-weight: 800;
+		padding: 2px 7px;
+		border-radius: 3px;
+	}
+
+	.rank-bg-1 {
+		background: rgba(255, 215, 0, 0.25);
+		color: var(--accent-gold);
+		border: 1px solid var(--accent-gold);
+	}
+
+	.rank-bg-2 {
+		background: rgba(220, 220, 220, 0.25);
+		color: #e0e0e0;
+		border: 1px solid #c0c0c0;
+	}
+
+	.rank-bg-3 {
+		background: rgba(205, 127, 50, 0.25);
+		color: #e59866;
+		border: 1px solid #cd7f32;
+	}
+
+	.rank-bg-4 {
+		background: rgba(0, 240, 255, 0.2);
+		color: var(--accent-cyan);
+		border: 1px solid var(--accent-cyan);
+	}
+
+	.rank-bg-5, .rank-bg-6, .rank-bg-7, .rank-bg-8 {
+		background: rgba(168, 85, 247, 0.2);
+		color: #c084fc;
+		border: 1px solid #a855f7;
 	}
 
 	.space-v-lg { height: 28px; }

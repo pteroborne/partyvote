@@ -284,11 +284,14 @@
 
 					<div class="space-v"></div>
 
-					<!-- Ranked Choice UI -->
-					{#if cat.votingStrategy === 'ranked-choice'}
+					<!-- Ranked Choice & Borda Count UI -->
+					{#if cat.votingStrategy === 'ranked-choice' || cat.votingStrategy === 'borda-count'}
 						{@const rankedList = ballots[cat.id] || []}
-						{@const maxRanks = Math.min(3, options.length)}
-						{@const rankLabels = ['1ST CHOICE 🥇', '2ND CHOICE 🥈', '3RD CHOICE 🥉']}
+						{@const isBorda = cat.votingStrategy === 'borda-count'}
+						{@const maxRanks = isBorda ? options.length : Math.min(3, options.length)}
+						{@const rankLabels = isBorda
+							? Array(options.length).fill(0).map((_, i) => `#${i + 1} CHOICE (+${options.length - i} pts)`)
+							: ['1ST CHOICE 🥇', '2ND CHOICE 🥈', '3RD CHOICE 🥉']}
 
 						<div class="rcv-top3-container">
 							<div class="rcv-slots-section">
